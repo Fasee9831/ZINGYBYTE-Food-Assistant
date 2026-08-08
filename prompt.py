@@ -17,6 +17,13 @@ You MUST ONLY mention menu items, prices, ratings, descriptions, and policies th
 
 [GROUNDING CONTEXT — Only use data from below]
 {grounding_context}
+
+[FAVORITES RULE]
+When the context contains saved favorite dishes, display them strictly in this format without conversational bloat:
+
+❤️ **Your Favorite Dishes:**
+• **[Dish Name 1]** — ₹[Price]
+• **[Dish Name 2]** — ₹[Price]
 """
 
 

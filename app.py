@@ -14,16 +14,22 @@ from ui import (
     render_empty_state_screen,
     render_active_chat_bubbles,
     render_chat_bubble,
+    render_background,
     _divider,
 )
 from chat import execute_grounded_stream, update_running_summary
+from favorites import handle_add_favorite_request, format_favorites_display
+
+try:
+    from streamlit_js_eval import streamlit_js_eval
+except ImportError:  # pragma: no cover — fallback if dependency is missing
+    streamlit_js_eval = None
 
 _IMAGE_EXT = re.compile(r'\.(jpg|jpeg|png|gif|webp|bmp|svg|ico|heic|heif|tiff?)\b', re.IGNORECASE)
 
 _IMAGE_ERROR_RESPONSE = (
-    "I'm a text-based food concierge and can't view images or files. "
-    "Please describe what you'd like to know — menu items, prices, "
-    "order status, or delivery info! 🍔"
+    "I'm your text-based food concierge! 🍔 Ask me about menu items, prices, "
+    "ratings, live order tracking, or delivery info!"
 )
 
 
@@ -42,7 +48,7 @@ def _inject_keyboard_shortcuts() -> None:
             // Ctrl/Cmd + Shift + K: Focus search
             if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'K') {
                 e.preventDefault();
-                var search = document.querySelector('.zb-conv-search');
+                var search = document.querySelector('[data-testid="stSidebar"] [data-testid="stTextInput"] input');
                 if (search) { search.focus(); }
             }
         });
@@ -67,10 +73,32 @@ def _get_last_user_query() -> str:
     return ""
 
 
+def _detect_viewport() -> None:
+    """Detect mobile via window.innerWidth once, defaulting to desktop."""
+    if not st.session_state.get("_width_probe_pending", True):
+        return
+    if streamlit_js_eval is None:
+        st.session_state.is_mobile = False
+        st.session_state._width_probe_pending = False
+        return
+    try:
+        width = streamlit_js_eval(js_expr="window.innerWidth", key="zb_width_probe")
+    except Exception:
+        width = None
+    if width is None or int(width) <= 0:
+        return  # probe again on the next rerun
+    st.session_state.is_mobile = int(width) < 768
+    st.session_state._width_probe_pending = False
+
+
 def main() -> None:
     inject_premium_styles()
     _inject_keyboard_shortcuts()
     init_app_state()
+    _detect_viewport()
+
+    # Global floating background — persists across empty and chat states
+    render_background()
 
     # Handle regenerate
     if st.session_state.get("regenerate"):
@@ -95,6 +123,15 @@ def main() -> None:
                 st.session_state.regenerate = True
                 st.rerun()
     render_top_bar()
+
+    # FETCH_FAVORITES — triggered by the "My Favorite Dishes" button in the menu drawer
+    if st.session_state.pop("fetch_favorites", False):
+        fav_reply = format_favorites_display()
+        st.session_state.messages.append({"role": "assistant", "content": fav_reply})
+        render_chat_bubble("assistant", fav_reply)
+        save_current_conversation()
+        st.rerun()
+        return
 
     if not st.session_state.messages:
         render_empty_state_screen()
@@ -126,6 +163,16 @@ def main() -> None:
                 "content": _IMAGE_ERROR_RESPONSE,
             })
             render_chat_bubble("assistant", _IMAGE_ERROR_RESPONSE)
+            save_current_conversation()
+            st.rerun()
+            return
+
+        # Natural-language add-to-favorites intent ("Make X my favorite" / "Add X to favorites")
+        fav_result = handle_add_favorite_request(active_query)
+        if fav_result is not None:
+            fav_reply, _saved = fav_result
+            st.session_state.messages.append({"role": "assistant", "content": fav_reply})
+            render_chat_bubble("assistant", fav_reply)
             save_current_conversation()
             st.rerun()
             return

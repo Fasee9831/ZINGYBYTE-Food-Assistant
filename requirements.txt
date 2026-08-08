@@ -1,5 +1,5 @@
 streamlit
+streamlit-js-eval
 langchain
 langchain-groq
 langchain-core
-fpdf2

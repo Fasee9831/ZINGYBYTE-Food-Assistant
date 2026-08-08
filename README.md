@@ -12,10 +12,11 @@ A friendly AI food assistant that helps customers explore menus, track orders, a
 - **Fast Streaming Responses** — Responses appear word-by-word in real-time
 - **Premium UI** — Dark glassmorphic design with floating food animations
 - **Conversation History** — Auto-saved chats with search, rename, and time-based grouping
+- **Conversation Summary** — One-tap summary of your current chat
+- **Favorites** — Save dishes with ❤️ and ask "Show my favorite dishes" anytime
 - **Follow-up Suggestions** — Context-aware question suggestions after each response
-- **Copy Response** — One-click copy of any AI reply
-- **Regenerate Answer** — Re-generate the last AI response
-- **PDF Export** — Download full conversation as a formatted PDF with page numbers
+- **Regenerate Answer** — Re-generate the last AI response anytime
+- **Message Actions** — Like / dislike / share any AI reply
 - **Keyboard Shortcuts** — `Ctrl+K` to focus chat, `Ctrl+Shift+K` to focus search
 - **Auto-Summary** — Long conversations are summarized to keep responses fast
 
@@ -78,8 +79,9 @@ GROQ_API_KEY = "gsk_your_api_key_here"
 | `knowledge.py` | Menu catalog, FAQs, and mock order data |
 | `prompt.py` | AI personality instructions and suggested questions |
 | `styles.py` | All the CSS for the dark premium look |
-| `ui.py` | Renders sidebar, top bar, hero screen, and chat bubbles |
-| `utils.py` | Session state, conversation management, PDF export |
+| `ui.py` | Renders sidebar, top bar, menu drawer, hero screen, and chat bubbles |
+| `utils.py` | Session state and conversation management |
+| `favorites.py` | Favorite-dish storage, lookups, and formatting |
 
 ---
 

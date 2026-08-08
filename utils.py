@@ -2,10 +2,9 @@
 
 import re
 import os
-import unicodedata
 import uuid
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Tuple
 from dataclasses import dataclass, field
 import streamlit as st
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
@@ -97,6 +96,10 @@ def init_app_state() -> None:
     else:
         for msg in st.session_state.messages:
             msg["content"] = _redact_image_content(msg["content"])
+    if "favorite_dishes" not in st.session_state:
+        st.session_state.favorite_dishes = {}
+    if "favorites" not in st.session_state:
+        st.session_state.favorites = set()
     if "metrics_history" not in st.session_state:
         st.session_state.metrics_history = {"total_tokens": 0, "execution_time": 0.0}
     if "chat_summary" not in st.session_state:
@@ -239,138 +242,3 @@ def compile_message_history() -> List:
         elif msg["role"] == "assistant":
             history.append(AIMessage(content=safe))
     return history
-
-
-def _sanitize_pdf_text(text: str) -> str:
-    """Replace unsupported characters with clean alternatives for PDF output."""
-    replacements = {
-        '🍔': '[Burger]', '🍕': '[Pizza]', '🍟': '[Fries]',
-        '🌮': '[Taco]', '🥪': '[Sandwich]', '🍗': '[Chicken]',
-        '🥤': '[Drink]', '🍦': '[Ice Cream]', '🍩': '[Donut]',
-        '🍿': '[Popcorn]', '🥓': '[Bacon]', '🌯': '[Wrap]',
-        '🍚': '[Biryani]', '🧀': '[Cheese]', '🥗': '[Salad]',
-        '🍝': '[Pasta]', '🍜': '[Noodles]', '🍛': '[Curry]',
-        '🍣': '[Sushi]', '🥟': '[Dumpling]', '🍞': '[Bread]',
-        '🥚': '[Egg]', '🧈': '[Butter]', '☕': '[Coffee]',
-        '🍵': '[Tea]', '🧃': '[Juice]', '🍪': '[Cookie]',
-        '🎂': '[Cake]', '🍫': '[Chocolate]', '🍬': '[Candy]',
-        '🥑': '[Avocado]', '🥦': '[Broccoli]', '🍅': '[Tomato]',
-        '🧄': '[Garlic]', '🧅': '[Onion]', '🍄': '[Mushroom]',
-        '🥜': '[Nut]', '🍯': '[Honey]',
-        '🛵': '[Delivery]', '📦': '[Package]', '💳': '[Payment]',
-        '💰': '[Money]', '🧾': '[Receipt]', '🛒': '[Cart]',
-        '💵': '[Cash]', '🏪': '[Store]',
-        '⭐': '*', '✨': '*', '🌟': '*', '🎉': '!',
-        '🎊': '!', '✅': '[OK]', '❌': '[X]', '❓': '?',
-        '❗': '!', '⚠️': '[!]', '🔔': '[Bell]', '📢': '[!]',
-        '💯': '[100]', '🔥': '[Hot]', '⚡': '[Fast]',
-        '🚀': '[Fast]', '⏱️': '[Time]', '📌': '[Pin]',
-        '😊': ':)', '😋': ':P', '😄': ':D', '😍': '<3',
-        '🤗': '[Hug]', '😉': ';)', '🤔': '[Hmm]', '😮': '[Wow]',
-        '😢': ":'(", '😎': '[Cool]', '👍': '[Yes]', '👎': '[No]',
-        '👌': '[OK]', '🙏': '[Thanks]', '👋': '', '💬': '',
-        '🔍': '', '📝': '', '📖': '', '📄': '',
-        '📋': '', '🎈': '*', '🏆': '[Award]',
-    }
-    for k, v in replacements.items():
-        text = text.replace(k, v)
-
-    result = []
-    for ch in text:
-        try:
-            ch.encode('latin-1')
-            result.append(ch)
-        except UnicodeEncodeError:
-            normalized = unicodedata.normalize('NFKD', ch).encode('ascii', 'ignore').decode('ascii')
-            result.append(normalized if normalized else '')
-    return ''.join(result).strip()
-
-
-_HAS_FPDF = False
-try:
-    from fpdf import FPDF
-    _HAS_FPDF = True
-except ImportError:
-    pass
-
-
-def generate_pdf_export() -> Optional[bytes]:
-    """Generate a professionally formatted PDF of the current conversation."""
-    if not _HAS_FPDF:
-        return None
-
-    try:
-        class PDF(FPDF):
-            def footer(self):
-                self.set_y(-15)
-                self.set_font('Helvetica', 'I', 8)
-                self.set_text_color(138, 138, 154)
-                self.cell(0, 10, f'Page {self.page_no()}/{{nb}}', align='C')
-
-        pdf = PDF()
-        pdf.alias_nb_pages()
-        pdf.set_auto_page_break(auto=True, margin=20)
-        pdf.add_page()
-
-        pdf.set_font('Helvetica', 'B', 22)
-        pdf.set_text_color(255, 75, 75)
-        pdf.cell(0, 14, 'ZINGYBYTE AI', new_x='LMARGIN', new_y='NEXT', align='C')
-
-        pdf.set_font('Helvetica', '', 10)
-        pdf.set_text_color(138, 138, 154)
-        pdf.cell(0, 5, 'Your Food Buddy - Chat Export', new_x='LMARGIN', new_y='NEXT', align='C')
-        pdf.cell(0, 5, f"Generated: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}", new_x='LMARGIN', new_y='NEXT', align='C')
-        pdf.ln(4)
-
-        pdf.set_draw_color(255, 75, 75)
-        y = pdf.get_y()
-        pdf.line(10, y, 200, y)
-        pdf.ln(6)
-
-        messages = st.session_state.messages
-        title = _sanitize_pdf_text(_auto_generate_title(messages))
-        pdf.set_font('Helvetica', 'B', 14)
-        pdf.set_text_color(240, 240, 245)
-        pdf.cell(0, 10, title, new_x='LMARGIN', new_y='NEXT')
-        pdf.ln(4)
-
-        if not messages:
-            pdf.set_font('Helvetica', '', 11)
-            pdf.set_text_color(138, 138, 154)
-            pdf.cell(0, 10, 'This conversation is empty. Start chatting to receive a full PDF export.', new_x='LMARGIN', new_y='NEXT', align='C')
-        else:
-            for msg in messages:
-                role_label = 'You' if msg['role'] == 'user' else 'ZingyByte AI'
-                content = _sanitize_pdf_text(msg['content'])
-
-                if msg['role'] == 'user':
-                    pdf.set_font('Helvetica', 'B', 10)
-                    pdf.set_text_color(255, 75, 75)
-                else:
-                    pdf.set_font('Helvetica', 'B', 10)
-                    pdf.set_text_color(255, 179, 71)
-                pdf.cell(0, 7, role_label, new_x='LMARGIN', new_y='NEXT')
-
-                pdf.set_font('Helvetica', '', 9)
-                pdf.set_text_color(200, 200, 210)
-                pdf.multi_cell(0, 5, content)
-                pdf.ln(3)
-
-        pdf.ln(4)
-        pdf.set_draw_color(255, 75, 75)
-        y = pdf.get_y()
-        pdf.line(10, y, 200, y)
-        pdf.ln(6)
-
-        pdf.set_font('Helvetica', 'I', 8)
-        pdf.set_text_color(138, 138, 154)
-        user_msgs = sum(1 for m in messages if m['role'] == 'user')
-        ai_msgs = sum(1 for m in messages if m['role'] == 'assistant')
-        pdf.cell(0, 4, f"Messages: {len(messages)}  |  You: {user_msgs}  |  ZingyByte AI: {ai_msgs}", new_x='LMARGIN', new_y='NEXT', align='C')
-        pdf.cell(0, 4, f"Powered by ZingyByte AI v{VERSION}", new_x='LMARGIN', new_y='NEXT', align='C')
-
-        return bytes(pdf.output())
-
-    except Exception as e:
-        st.error(f"Could not generate PDF. {e}")
-        return None

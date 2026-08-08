@@ -1,6 +1,7 @@
 """Structured operational knowledge base with cached menu, FAQs, and orders."""
 
-from typing import Dict, Any, List
+import re
+from typing import Dict, Any, List, Optional
 import streamlit as st
 
 ZINGYBYTE_MENU: Dict[str, List[Dict[str, Any]]] = {
@@ -70,6 +71,30 @@ def _get_cached_orders() -> Dict:
     return MOCK_ORDERS
 
 
+def _normalize(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", (text or "").lower())
+
+
+def _get_menu_items() -> List[Dict]:
+    return [item for group in ZINGYBYTE_MENU.values() for item in group]
+
+
+def search_menu_dish(phrase: str) -> Optional[Dict]:
+    """Resolve a (possibly fuzzy) dish phrase to its canonical {name, price}."""
+    target = _normalize(phrase)
+    if not target:
+        return None
+    for item in _get_menu_items():
+        norm_name = _normalize(item["name"])
+        if (
+            target == norm_name
+            or (len(target) >= 4 and target in norm_name)
+            or (len(norm_name) >= 4 and norm_name in target)
+        ):
+            return {"name": item["name"], "price": item["price"]}
+    return None
+
+
 def query_knowledge_context(user_query: str) -> str:
     context_chunks = []
     query_lower = user_query.lower()
@@ -77,6 +102,40 @@ def query_knowledge_context(user_query: str) -> str:
     faqs = _get_cached_faqs()
     orders = _get_cached_orders()
 
+    # Initialize session state favorites if not present
+    if "favorite_dishes" not in st.session_state:
+        st.session_state.favorite_dishes = {}
+
+    # ── 1. Handle Favorites Logic ──
+    if "favorite" in query_lower or "favourite" in query_lower:
+        # Action A: Add to favorites
+        if any(w in query_lower for w in ["add", "make", "save", "mark", "set"]):
+            for category, items in menu.items():
+                for item in items:
+                    if item["name"].lower() in query_lower:
+                        st.session_state.favorite_dishes[item["name"]] = item["price"]
+                        return (
+                            f"SYSTEM_NOTE: '{item['name']}' (₹{item['price']}) has been saved to favorites.\n"
+                            f"Confirm cleanly to the user that '{item['name']}' is now in their favorites."
+                        )
+
+        # Action B: Retrieve favorites
+        favs = st.session_state.favorite_dishes
+        if favs:
+            fav_items = "\n".join([f"• **{name}** — ₹{price}" for name, price in favs.items()])
+            return (
+                f"### Saved Favorite Dishes:\n{fav_items}\n\n"
+                f"SYSTEM_NOTE: The user is asking for their favorites. Output ONLY the favorite dishes list formatted as:\n"
+                f"❤️ **Your Favorite Dishes:**\n{fav_items}"
+            )
+        else:
+            return (
+                "### Saved Favorite Dishes:\nNone.\n\n"
+                "SYSTEM_NOTE: The user has no saved favorites yet. Reply warmly with: "
+                "\"You haven't added any favorite dishes yet! Say something like *'Add Mexican Grilled Chicken & Cheese to my favorites'* and I'll save it for you! ❤️\""
+            )
+
+    # ── 2. Standard Category Search ──
     found_specific_category = False
     for category, items in menu.items():
         if category.lower() in query_lower or any(item["name"].lower() in query_lower for item in items):
