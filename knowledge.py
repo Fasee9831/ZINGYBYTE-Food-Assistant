@@ -56,6 +56,34 @@ MOCK_ORDERS: Dict[str, Dict[str, Any]] = {
     "ZB-4491": {"status": "Delivered", "eta": "Completed", "courier": "Anand S.", "total": 180}
 }
 
+ZINGYBYTE_BRANCHES: Dict[str, Dict[str, str]] = {
+    "Koramangala Flagship": {
+        "address": "24, 5th Block, Koramangala, Bengaluru, 560095",
+        "hours": "9:00 AM – 11:30 PM (all days)",
+        "facilities": "Dine-in, Takeaway, Drive-through",
+        "contact": "+91 98765 01001"
+    },
+    "HSR Layout": {
+        "address": "1232, 27th Main Rd, Sector 1, HSR Layout, Bengaluru, 560102",
+        "hours": "10:00 AM – 11:00 PM (all days)",
+        "facilities": "Dine-in, Takeaway, Delivery hub",
+        "contact": "+91 98765 01002"
+    },
+    "Indiranagar": {
+        "address": "100 Feet Road, Indiranagar, Bengaluru, 560038",
+        "hours": "11:00 AM – 11:30 PM (all days)",
+        "facilities": "Dine-in, Takeaway, Rooftop seating",
+        "contact": "+91 98765 01003"
+    }
+}
+
+ZINGYBYTE_COUPONS: Dict[str, Dict[str, str]] = {
+    "ZINGY20": {"deal": "20% OFF on bills above ₹499", "validity": "Valid till this month end"},
+    "FREEDEL": {"deal": "Free delivery on orders above ₹300", "validity": "Valid on all delivery orders"},
+    "WELCOME10": {"deal": "10% OFF on your first order", "validity": "New customers only, single use"},
+    "BIRYANIDAY": {"deal": "Flat ₹50 OFF on any biryani", "validity": "Fridays only"}
+}
+
 
 @st.cache_data(show_spinner=False)
 def _get_cached_menu() -> Dict:
@@ -70,6 +98,16 @@ def _get_cached_faqs() -> List:
 @st.cache_data(show_spinner=False)
 def _get_cached_orders() -> Dict:
     return MOCK_ORDERS
+
+
+@st.cache_data(show_spinner=False)
+def _get_cached_branches() -> Dict:
+    return ZINGYBYTE_BRANCHES
+
+
+@st.cache_data(show_spinner=False)
+def _get_cached_coupons() -> Dict:
+    return ZINGYBYTE_COUPONS
 
 
 def _normalize(text: str) -> str:
@@ -112,6 +150,8 @@ def query_knowledge_context(user_query: str) -> str:
     menu = _get_cached_menu()
     faqs = _get_cached_faqs()
     orders = _get_cached_orders()
+    branches = _get_cached_branches()
+    coupons = _get_cached_coupons()
 
     # Initialize session state favorites if not present
     if "favorite_dishes" not in st.session_state:
@@ -178,10 +218,38 @@ def query_knowledge_context(user_query: str) -> str:
                 f"- **Transaction Invoice Amount**: ₹{telemetry['total']}\n"
             )
 
+    # ── 3. Branch / Location / Outlet ──
+    branch_intent = False
+    branch_triggers = ["branch", "outlet", "store", "address", "location", "where are you",
+                       "dine", "visit", "franchise", "shop floor", "near me"]
+    if any(trigger in query_lower for trigger in branch_triggers):
+        branch_intent = True
+        chunk = "### ZINGYBYTE Branches:\n"
+        for name, info in branches.items():
+            chunk += (
+                f"- **{name}**\n"
+                f"  • *Address*: {info['address']}\n"
+                f"  • *Hours*: {info['hours']}\n"
+                f"  • *Facilities*: {info['facilities']}\n"
+                f"  • *Contact*: {info['contact']}\n"
+            )
+        context_chunks.append(chunk)
+
+    # ── 4. Coupons / Offers / Promo Codes ──
+    offer_intent = False
+    offer_triggers = ["coupon", "offer", "promo", "discount", "deal", "voucher", "code", "cashback"]
+    if any(trigger in query_lower for trigger in offer_triggers):
+        offer_intent = True
+        chunk = "### ZINGYBYTE Active Coupons & Offers:\n"
+        for code, details in coupons.items():
+            chunk += f"- **{code}** — {details['deal']} ({details['validity']})\n"
+        chunk += "\nSYSTEM_NOTE: Quote coupon codes exactly as written above. Never invent codes."
+        context_chunks.append(chunk)
+
     general_triggers = ["menu", "detail", "food", "eat", "hungry", "suggest", "recommend", "option", "what", "have", "list", "crav"]
     wants_menu = any(trigger in query_lower for trigger in general_triggers)
 
-    if wants_menu or (not found_specific_category and not is_order_query):
+    if wants_menu or (not found_specific_category and not is_order_query and not branch_intent and not offer_intent):
         context_chunks.append("### Full ZINGYBYTE Menu Catalog")
         for category, items in menu.items():
             chunk = f"\n#### {category}\n"
