@@ -5,7 +5,7 @@ PLATFORM_NAME = "ZINGYBYTE"
 VERSION = "2.0.0"
 
 # 2. Model Configuration
-DEFAULT_MODEL = "llama-3.1-8b-instant"
+DEFAULT_MODEL = "groq/compound-mini"
 
 # 3. Streamlit Page Configuration
 PAGE_CONFIG = {
