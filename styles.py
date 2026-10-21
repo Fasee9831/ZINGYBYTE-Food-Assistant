@@ -1197,41 +1197,59 @@ def inject_premium_styles() -> None:
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
         }}
 
-        /* User bubble — glass card */
+        /* User bubble — sleek amber glass card */
         [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) .stMarkdown {{
-            background: rgba(255,255,255,0.05) !important;
-            backdrop-filter: blur(12px) !important;
-            -webkit-backdrop-filter: blur(12px) !important;
-            border: 1px solid var(--border-light) !important;
+            background: linear-gradient(135deg, rgba(255,133,51,0.18), rgba(255,255,255,0.04)) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            border: 1px solid rgba(255,133,51,0.32) !important;
             padding: var(--space-3) var(--space-4) !important;
             border-radius: var(--radius-lg) !important;
-            border-bottom-right-radius: var(--radius-sm) !important;
+            border-bottom-right-radius: 4px !important;
             display: inline-block !important;
-            max-width: 85% !important;
+            max-width: 82% !important;
             float: right !important;
             font-size: var(--fs-body) !important;
             line-height: var(--lh-relaxed) !important;
-            color: var(--text-primary) !important;
+            color: #FFFFFF !important;
             clear: both;
-            box-shadow: var(--shadow-md) !important;
+            box-shadow: 0 4px 20px rgba(255,133,51,0.15) !important;
             overflow-wrap: break-word;
             word-break: break-word;
+            transition: transform 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out) !important;
         }}
         [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {{
             flex-direction: row-reverse !important;
+            margin-bottom: 8px !important;
         }}
 
-        /* Assistant bubble — clean, readable text */
+        /* Assistant bubble — premium left-aligned frosted glass card */
         [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) .stMarkdown {{
-            color: var(--text-primary) !important;
+            background: rgba(255,255,255,0.038) !important;
+            backdrop-filter: blur(18px) !important;
+            -webkit-backdrop-filter: blur(18px) !important;
+            border: 1px solid rgba(255,255,255,0.09) !important;
+            border-radius: var(--radius-lg) !important;
+            border-bottom-left-radius: 4px !important;
+            padding: 14px 18px !important;
+            display: inline-block !important;
+            max-width: 90% !important;
+            float: left !important;
             font-size: var(--fs-body) !important;
             line-height: var(--lh-relaxed) !important;
-            padding: var(--space-2) 0 !important;
+            color: var(--text-primary) !important;
             clear: both;
-            float: left !important;
-            max-width: 95% !important;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.28) !important;
             overflow-wrap: break-word;
             word-break: break-word;
+            transition: border-color 0.25s var(--ease-out), box-shadow 0.25s var(--ease-out) !important;
+        }}
+        [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]):hover .stMarkdown {{
+            border-color: rgba(255,255,255,0.18) !important;
+            box-shadow: 0 12px 36px rgba(0,0,0,0.36) !important;
+        }}
+        [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) {{
+            margin-bottom: 12px !important;
         }}
 
         [data-testid="stChatMessage"]::after {{
@@ -1284,28 +1302,48 @@ def inject_premium_styles() -> None:
             min-width: 0;
         }}
         [data-testid="stChatMessage"] .stMarkdown table {{
-            display: block;
-            max-width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            border-collapse: collapse;
-            font-size: var(--fs-small);
+            width: 100% !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
+            margin: 12px 0 !important;
+            border-radius: var(--radius-md) !important;
+            overflow: hidden !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            background: rgba(0, 0, 0, 0.25) !important;
+            font-size: var(--fs-small) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+        }}
+        [data-testid="stChatMessage"] .stMarkdown table th {{
+            background: rgba(255, 133, 51, 0.14) !important;
+            color: #FF8533 !important;
+            font-weight: 600 !important;
+            padding: 10px 14px !important;
+            text-align: left !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            letter-spacing: 0.02em;
+        }}
+        [data-testid="stChatMessage"] .stMarkdown table td {{
+            padding: 9px 14px !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+            color: var(--text-primary) !important;
+            transition: background 0.15s ease;
+        }}
+        [data-testid="stChatMessage"] .stMarkdown table tr:last-child td {{
+            border-bottom: none !important;
+        }}
+        [data-testid="stChatMessage"] .stMarkdown table tr:hover td {{
+            background: rgba(255, 255, 255, 0.04) !important;
         }}
         [data-testid="stChatMessage"] .stMarkdown pre {{
             max-width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            background: rgba(255,255,255,0.03) !important;
-            border: 1px solid var(--border-subtle) !important;
+            background: rgba(0,0,0,0.3) !important;
+            border: 1px solid var(--border-light) !important;
             border-radius: var(--radius-md) !important;
             font-family: var(--font-mono);
             font-size: var(--fs-small) !important;
             padding: var(--space-3) !important;
-        }}
-        [data-testid="stChatMessage"] .stMarkdown table th,
-        [data-testid="stChatMessage"] .stMarkdown table td {{
-            padding: var(--space-1) var(--space-2) !important;
-            border-color: var(--border-medium) !important;
         }}
         [data-testid="stChatMessage"] .stMarkdown img {{
             max-width: 100%;
