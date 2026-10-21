@@ -459,15 +459,20 @@ def _inject_body_state(dialog_open: bool = False) -> None:
 
 
 def render_top_bar() -> None:
-    """Premium sticky header: native ☰ menu, brand, native ✦ quick actions."""
+    """Premium sticky header: Back, Menu, Brand, Home, and Quick Actions."""
     _init_nav_state()
-    cols = st.columns([1, 4, 1])
+    cols = st.columns([1, 1, 6, 1, 1])
     with cols[0]:
-        if st.button(" ", key="zb_btn_menu", help="Open menu"):
+        if st.button("←", key="zb_btn_back", help="Back / Fresh Chat"):
+            save_current_conversation()
+            start_new_conversation()
+            st.rerun()
+    with cols[1]:
+        if st.button("☰", key="zb_btn_menu", help="Open Navigation Menu"):
             st.session_state.show_menu = not st.session_state.get("show_menu", False)
             st.session_state.show_panel = False
             st.rerun()
-    with cols[1]:
+    with cols[2]:
         st.markdown(
             '<div class="zb-header-brand zb-header-anchor">'
             '<span class="zb-header-icon">&#127828;</span>'
@@ -477,8 +482,13 @@ def render_top_bar() -> None:
             '</div>',
             unsafe_allow_html=True,
         )
-    with cols[2]:
-        if st.button(" ", key="zb_btn_panel", help="Quick actions"):
+    with cols[3]:
+        if st.button("🏠", key="zb_btn_home", help="Home"):
+            save_current_conversation()
+            start_new_conversation()
+            st.rerun()
+    with cols[4]:
+        if st.button("✦", key="zb_btn_panel", help="Quick actions"):
             st.session_state.show_panel = not st.session_state.get("show_panel", False)
             st.session_state.show_menu = False
             st.rerun()
@@ -547,7 +557,7 @@ def render_empty_state_screen() -> None:
 
     # Adaptive chip grid — full-width pills on narrow containers, auto-flow row on
     # Adaptive chip grid — 2 columns of pills on mobile, one row on desktop
-    n_cols = 2 if _is_mobile() else len(SUGGESTED_PROMPTS)
+    n_cols = 2 if _is_mobile() else 3
     cols = st.columns(n_cols)
     for idx, card in enumerate(SUGGESTED_PROMPTS):
         parts = card["label"].split(" ", 1)
@@ -556,7 +566,7 @@ def render_empty_state_screen() -> None:
         with cols[idx % n_cols]:
             if idx == 0:
                 st.markdown('<div class="zb-chips-anchor"></div>', unsafe_allow_html=True)
-            if st.button(f"{emoji} {label}", key=f"chip_{idx}"):
+            if st.button(f"{emoji} {label}", key=f"chip_{idx}", use_container_width=True):
                 st.session_state.input_injection = card["query"]
                 st.rerun()
 
@@ -584,21 +594,24 @@ def render_typing_indicator() -> str:
 
 
 def _render_bubble_actions(idx: int, content: str) -> None:
-    """Feedback row: like / dislike with an instant status indicator.
-
-    Button labels stay static because Streamlit 1.48's frontend does not
-    re-render `st.button` labels after a rerun; the selection state is shown
-    by a markdown indicator computed AFTER the click handlers run, so it
-    reflects the click in the very same frame as the toast.
-    """
+    """Actions row: Copy message, Like, Dislike, and status indicator."""
     feedback = st.session_state.setdefault("msg_feedback", {})
     current = feedback.get(idx, 0)
 
-    cols = st.columns([1, 1, 3])
+    cols = st.columns([1, 1, 1, 4])
     with cols[0]:
-        liked = st.button("👍", key=f"like_{idx}")
+        if st.button("📋", key=f"copy_{idx}", help="Copy response"):
+            escaped = content.replace("\\", "\\\\").replace("'", "\\'").replace("\n", " ").replace("\r", "")
+            st.markdown(
+                f"<script>navigator.clipboard.writeText('{escaped}');</script>",
+                unsafe_allow_html=True
+            )
+            st.session_state[f"copied_{idx}"] = True
+            st.toast("Copied to clipboard! 📋")
     with cols[1]:
-        disliked = st.button("👎", key=f"dislike_{idx}")
+        liked = st.button("👍", key=f"like_{idx}", help="Helpful")
+    with cols[2]:
+        disliked = st.button("👎", key=f"dislike_{idx}", help="Not helpful")
 
     if liked:
         feedback[idx] = 0 if current == 1 else 1
@@ -607,9 +620,12 @@ def _render_bubble_actions(idx: int, content: str) -> None:
         feedback[idx] = 0 if current == -1 else -1
         st.toast("Feedback noted — we'll improve! 👍" if current != -1 else "Feedback removed")
 
-    with cols[2]:
+    with cols[3]:
         now = feedback.get(idx, 0)
         status = "❤️ Liked" if now == 1 else ("💔 Disliked" if now == -1 else "")
+        if st.session_state.get(f"copied_{idx}"):
+            status = "📋 Copied" + (f" · {status}" if status else "")
+            st.session_state[f"copied_{idx}"] = False
         st.markdown(
             f'<span class="zb-fb-status">{status}</span>',
             unsafe_allow_html=True,

@@ -666,51 +666,31 @@ def inject_premium_styles() -> None:
             box-shadow: 0 4px 16px rgba(255, 133, 51, 0.18) !important;
         }}
 
-        /* Hide text inside header icon buttons */
+        /* Visible, crisp icons for all header navigation buttons */
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button {{
+            color: var(--text-primary) !important;
+            font-size: 1.15rem !important;
+            font-weight: 600 !important;
+            line-height: 1 !important;
+        }}
         [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button div {{
-            opacity: 0 !important;
-            visibility: hidden !important;
-            display: none !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            opacity: 1 !important;
+            visibility: visible !important;
         }}
-
-        /* Top-left Menu: Modern SVG Hamburger Icon */
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:first-child .stButton > button::before {{
-            content: '' !important;
-            position: absolute !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            width: 20px !important;
-            height: 20px !important;
-            background-color: var(--text-primary) !important;
-            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='4' x2='20' y1='12' y2='12'/%3E%3Cline x1='4' x2='20' y1='6' y2='6'/%3E%3Cline x1='4' x2='20' y1='18' y2='18'/%3E%3C/svg%3E") no-repeat center / contain !important;
-            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='4' x2='20' y1='12' y2='12'/%3E%3Cline x1='4' x2='20' y1='6' y2='6'/%3E%3Cline x1='4' x2='20' y1='18' y2='18'/%3E%3C/svg%3E") no-repeat center / contain !important;
-            transition: background-color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-            pointer-events: none !important;
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button p {{
+            margin: 0 !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+            color: inherit !important;
         }}
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:first-child .stButton > button:hover::before {{
-            background-color: var(--brand) !important;
-            transform: translate(-50%, -50%) scale(1.12) !important;
-        }}
-
-        /* Top-right Quick Actions: Modern SVG Bento Grid Icon (Replacing ✦) */
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:last-child .stButton > button::before {{
-            content: '' !important;
-            position: absolute !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            width: 20px !important;
-            height: 20px !important;
-            background-color: var(--text-primary) !important;
-            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='7' height='7' x='3' y='3' rx='1.5'/%3E%3Crect width='7' height='7' x='14' y='3' rx='1.5'/%3E%3Crect width='7' height='7' x='14' y='14' rx='1.5'/%3E%3Crect width='7' height='7' x='3' y='14' rx='1.5'/%3E%3C/svg%3E") no-repeat center / contain !important;
-            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='7' height='7' x='3' y='3' rx='1.5'/%3E%3Crect width='7' height='7' x='14' y='3' rx='1.5'/%3E%3Crect width='7' height='7' x='14' y='14' rx='1.5'/%3E%3Crect width='7' height='7' x='3' y='14' rx='1.5'/%3E%3C/svg%3E") no-repeat center / contain !important;
-            transition: background-color 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-            pointer-events: none !important;
-        }}
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:last-child .stButton > button:hover::before {{
-            background-color: var(--brand) !important;
-            transform: translate(-50%, -50%) scale(1.12) !important;
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button:hover {{
+            color: var(--brand) !important;
+            transform: translateY(-2px) scale(1.06) !important;
+            border-color: rgba(255, 133, 51, 0.45) !important;
+            box-shadow: 0 4px 16px rgba(255, 133, 51, 0.25) !important;
         }}
         @media (max-width: 480px) {{
             [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button {{
