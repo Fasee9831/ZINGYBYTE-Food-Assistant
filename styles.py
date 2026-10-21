@@ -464,27 +464,33 @@ def inject_premium_styles() -> None:
             }}
         }}
 
-        /* ── Smart header — mobile: hide controls in idle chat, show while typing, hide on scroll down ── */
+        /* ── Mobile App Bar: permanent visibility, rock solid, never hides or shifts ── */
         [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) {{
-            transition: transform 0.35s var(--ease-out) !important;
+            transition: none !important;
+            transform: none !important;
         }}
         [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:first-child,
         [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:last-child {{
-            transition: width 0.3s var(--ease-out), opacity 0.22s var(--ease-out),
-                        transform 0.3s var(--ease-out), padding 0.3s var(--ease-out) !important;
-            overflow: hidden !important;
+            flex: 0 0 auto !important;
+            width: auto !important;
+            opacity: 1 !important;
+            transform: none !important;
+            pointer-events: auto !important;
+            overflow: visible !important;
+            display: flex !important;
+            align-items: center !important;
         }}
         @media (max-width: 767px) {{
-            body.has-chat:not(.input-focus) [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:first-child,
-            body.has-chat:not(.input-focus) [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:last-child {{
-                width: 0 !important;
-                padding: 0 !important;
-                opacity: 0 !important;
-                transform: translateY(4px) !important;
-                pointer-events: none !important;
+            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) {{
+                transform: none !important;
             }}
-            body.scrolled-down:not(.drawer-open) [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) {{
-                transform: translateY(-100%) !important;
+            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:first-child,
+            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:last-child {{
+                width: auto !important;
+                padding: 0 !important;
+                opacity: 1 !important;
+                transform: none !important;
+                pointer-events: auto !important;
             }}
         }}
 
@@ -1144,18 +1150,43 @@ def inject_premium_styles() -> None:
             }}
         }}
 
-        /* Mobile — chips become full-width pill grid */
+        /* Mobile — chips become a sleek 2-column responsive grid */
         @media (max-width: 768px) {{
+            [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor) {{
+                display: flex !important;
+                flex-wrap: wrap !important;
+                justify-content: space-between !important;
+                gap: 8px !important;
+                width: 100% !important;
+            }}
+            [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor) > [data-testid="stColumn"],
+            [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor) > div {{
+                flex: 1 1 calc(50% - 6px) !important;
+                width: calc(50% - 6px) !important;
+                min-width: 130px !important;
+                max-width: 100% !important;
+                padding: 0 !important;
+            }}
+            [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor) .stButton > button {{
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: 48px !important;
+                height: auto !important;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                text-align: left !important;
+                justify-content: flex-start !important;
+                padding: 10px 12px !important;
+                font-size: 0.78rem !important;
+                line-height: 1.3 !important;
+                border-radius: var(--radius-md) !important;
+            }}
+        }}
+        @media (max-width: 360px) {{
             [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor) > [data-testid="stColumn"],
             [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor) > div {{
                 flex: 1 1 100% !important;
                 width: 100% !important;
-                max-width: none !important;
-            }}
-            [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor) .stButton > button {{
-                width: 100% !important;
-                max-width: none !important;
-                white-space: normal !important;
             }}
         }}
 
@@ -1355,7 +1386,25 @@ def inject_premium_styles() -> None:
 
         /* ── Markdown: tables & code scroll horizontally on small screens ── */
         [data-testid="stChatMessage"] .stMarkdown {{
-            min-width: 0;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+        }}
+        @media (max-width: 768px) {{
+            [data-testid="stChatMessage"] .stMarkdown table {{
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                font-size: 0.78rem !important;
+            }}
+            [data-testid="stChatMessage"] .stMarkdown table th,
+            [data-testid="stChatMessage"] .stMarkdown table td {{
+                padding: 8px 10px !important;
+                white-space: nowrap !important;
+            }}
         }}
         [data-testid="stChatMessage"] .stMarkdown table {{
             width: 100% !important;
@@ -1526,16 +1575,30 @@ def inject_premium_styles() -> None:
             box-shadow: 0 8px 20px rgba(255,133,51,0.14) !important;
         }}
 
-        @media (max-width: 640px) {{
+        @media (max-width: 768px) {{
             [data-testid="stHorizontalBlock"]:has(.zb-fu-anchor) {{
                 display: flex !important;
-                flex-wrap: wrap !important;
+                flex-direction: column !important;
                 gap: 8px !important;
-                justify-content: flex-start !important;
+                width: 100% !important;
+            }}
+            [data-testid="stHorizontalBlock"]:has(.zb-fu-anchor) > [data-testid="stColumn"],
+            [data-testid="stHorizontalBlock"]:has(.zb-fu-anchor) > div {{
+                flex: 1 1 100% !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }}
             [data-testid="stHorizontalBlock"]:has(.zb-fu-anchor) .stButton > button {{
-                min-height: 38px !important;
-                white-space: nowrap !important;
+                width: 100% !important;
+                height: auto !important;
+                min-height: 44px !important;
+                white-space: normal !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+                text-align: left !important;
+                padding: 10px 14px !important;
+                line-height: 1.35 !important;
+                font-size: 0.85rem !important;
             }}
         }}
 
@@ -2637,19 +2700,16 @@ def inject_premium_styles() -> None:
             color: var(--text-secondary) !important;
         }}
 
-        /* ── Suggestion chips: single horizontal row that scrolls on mobile ── */
-        [data-testid="stHorizontalBlock"] {{
+        /* ── Mobile Suggestion Chips & Followups: targeted scoping ── */
+        [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor) {{
             display: flex !important;
-            flex-wrap: nowrap !important;
-            overflow-x: auto !important;
-            gap: 12px !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
             align-items: center !important;
-            justify-content: flex-start !important;
-            scrollbar-width: none !important;
-            -ms-overflow-style: none !important;
+            justify-content: center !important;
             padding-bottom: 4px !important;
         }}
-        [data-testid="stHorizontalBlock"]::-webkit-scrollbar {{
+        [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor)::-webkit-scrollbar {{
             display: none !important;
         }}
         [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) {{
@@ -2665,9 +2725,16 @@ def inject_premium_styles() -> None:
             max-width: none !important;
             padding: 0 !important;
         }}
-        [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor, .zb-fu-anchor) .stButton > button {{
-            white-space: nowrap !important;
-            width: auto !important;
+        [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor) .stButton > button {{
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            text-align: left !important;
+        }}
+        [data-testid="stHorizontalBlock"]:has(.zb-fu-anchor) .stButton > button {{
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            text-align: left !important;
+            width: 100% !important;
         }}
 
         /* Desktop/tablet: chips + follow-ups wrap into a centered pill grid */
@@ -2826,6 +2893,54 @@ def inject_premium_styles() -> None:
                 z-index: 100 !important;
             }}
         }}
+        
+        /* ── Mobile Header Brand Centering ── */
+        @media (max-width: 767px) {{
+            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:nth-child(2) {{
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                text-align: center !important;
+            }}
+            .zb-header-brand {{
+                display: inline-flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                gap: 6px !important;
+                margin: 0 auto !important;
+            }}
+        }}
+
+        /* ── Sidebar Conversation Row Action Buttons (compact & aligned) ── */
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"]:has([data-testid*="baseButton-load_"]) {{
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            gap: 6px !important;
+            margin: 4px 0 8px 0 !important;
+            padding: 0 !important;
+        }}
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"]:has([data-testid*="baseButton-load_"]) > [data-testid="stColumn"] {{
+            flex: 0 0 auto !important;
+            width: auto !important;
+            min-width: 0 !important;
+            padding: 0 !important;
+        }}
+        [data-testid="stSidebar"] [data-testid="stHorizontalBlock"]:has([data-testid*="baseButton-load_"]) .stButton > button {{
+            width: 36px !important;
+            min-width: 36px !important;
+            height: 32px !important;
+            min-height: 32px !important;
+            padding: 0 !important;
+            font-size: 0.85rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: var(--radius-sm) !important;
+            margin: 0 !important;
+        }}
+
         </style>
 
         <script>
@@ -2902,17 +3017,7 @@ def inject_premium_styles() -> None:
                 if (el) el.click();
             }};
 
-            /* Smart header: hide on scroll down, show on scroll up */
-            var lastY = 0;
-            function zbOnScroll() {{
-                var y = window.scrollY || document.documentElement.scrollTop || 0;
-                if (y > 150 && y > lastY + 4) document.body.classList.add('scrolled-down');
-                else if (y < lastY - 4 || y < 150) document.body.classList.remove('scrolled-down');
-                lastY = y;
-            }}
-            window.addEventListener('scroll', zbOnScroll, {{ passive: true }});
-            var zbMainEl = document.querySelector('section.main');
-            if (zbMainEl) zbMainEl.addEventListener('scroll', zbOnScroll, {{ passive: true }});
+            /* Header stays permanently stable and visible across all scrolls */
 
             /* Show header actions while typing, hide 2s after a message is sent */
             document.addEventListener('focusin', function(e) {{
