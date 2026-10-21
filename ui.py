@@ -534,13 +534,12 @@ def render_about_modal() -> None:
 # ──────────────────────────────────────────────────────────
 
 def render_empty_state_screen() -> None:
-    st.markdown(
+    st.html(
         '<div class="zb-hero">'
         '<span class="zb-hero-icon">&#127828;</span>'
         '<h1 class="zb-hero-title">Welcome to ZingyByte AI <span class="zb-native-emoji">&#127828;&#10024;</span></h1>'
         '<p class="zb-hero-sub">Your personal food concierge. Ask about menus, prices, ratings, or track your live orders!</p>'
-        '</div>',
-        unsafe_allow_html=True,
+        '</div>'
     )
 
     # Adaptive chip grid — full-width pills on narrow containers, auto-flow row on
