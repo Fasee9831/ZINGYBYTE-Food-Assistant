@@ -578,13 +578,11 @@ def inject_premium_styles() -> None:
 
         [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button,
         [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) button {{
-            width: 44px !important;
+            width: auto !important;
             min-width: 44px !important;
-            max-width: 44px !important;
-            height: 42px !important;
-            min-height: 42px !important;
-            max-height: 42px !important;
-            padding: 0 !important;
+            height: 38px !important;
+            min-height: 38px !important;
+            padding: 0 14px !important;
             margin: 0 !important;
             background: rgba(255, 255, 255, 0.08) !important;
             border: 1px solid rgba(255, 255, 255, 0.20) !important;
@@ -620,8 +618,8 @@ def inject_premium_styles() -> None:
         [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button p,
         [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button span {{
             color: #FFFFFF !important;
-            font-size: 1.35rem !important;
-            font-weight: 700 !important;
+            font-size: 0.92rem !important;
+            font-weight: 600 !important;
             line-height: 1 !important;
             margin: 0 !important;
             padding: 0 !important;
