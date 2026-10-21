@@ -567,44 +567,88 @@ def inject_premium_styles() -> None:
             50% {{ box-shadow: 0 0 2px var(--green-glow), 0 0 14px var(--green-glow); opacity: 0.8; }}
         }}
 
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button {{
-            background: rgba(255,255,255,0.04) !important;
-            border: 1px solid var(--border-light) !important;
-            border-radius: var(--radius-sm) !important;
-            color: var(--text-secondary) !important;
-            font-size: 0.65rem !important;
-            font-weight: var(--fw-medium) !important;
-            padding: 3px 8px !important;
-            height: 28px !important;
-            min-height: 28px !important;
-            line-height: 1 !important;
-            transition: all var(--transition-fast) !important;
+        /* ══════════════════════════════════════════════════════════════════════
+           HEADER NAVIGATION BUTTONS (Menu & Quick Actions)
+           ══════════════════════════════════════════════════════════════════════ */
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton {{
+            margin: 0 !important;
+            padding: 0 !important;
+            width: auto !important;
+        }}
+
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button,
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) button {{
+            width: 44px !important;
+            min-width: 44px !important;
+            max-width: 44px !important;
+            height: 42px !important;
+            min-height: 42px !important;
+            max-height: 42px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.20) !important;
+            border-radius: 12px !important;
+            color: #FFFFFF !important;
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
-            white-space: nowrap !important;
-            pointer-events: auto !important;
+            backdrop-filter: blur(12px) !important;
+            -webkit-backdrop-filter: blur(12px) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
             cursor: pointer !important;
+            pointer-events: auto !important;
+            position: relative !important;
+            overflow: visible !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
             z-index: 99999 !important;
         }}
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button:hover {{
-            background: rgba(255,255,255,0.09) !important;
-            color: var(--text-primary) !important;
-            border-color: var(--border-medium) !important;
-            transform: translateY(-1px) !important;
+
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button div,
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button [data-testid="stMarkdownContainer"] {{
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            width: 100% !important;
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
         }}
+
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button p,
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button span {{
+            color: #FFFFFF !important;
+            font-size: 1.35rem !important;
+            font-weight: 700 !important;
+            line-height: 1 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: inline-block !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8) !important;
+            letter-spacing: 0 !important;
+        }}
+
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button:hover {{
+            background: rgba(255, 133, 51, 0.22) !important;
+            border-color: rgba(255, 133, 51, 0.65) !important;
+            color: #FF8533 !important;
+            transform: translateY(-1px) scale(1.05) !important;
+            box-shadow: 0 4px 16px rgba(255, 133, 51, 0.35) !important;
+        }}
+
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button:hover p,
+        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button:hover span {{
+            color: #FF8533 !important;
+        }}
+
         [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button:active {{
             transform: scale(0.95) !important;
         }}
 
-        @media (min-width: 768px) {{
-            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button {{
-                padding: 4px 12px !important;
-                height: 30px !important;
-                min-height: 30px !important;
-                font-size: 0.7rem !important;
-            }}
-        }}
         @media (max-width: 767px) {{
             [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div:nth-child(2) {{
                 min-width: 0 !important;
@@ -614,7 +658,7 @@ def inject_premium_styles() -> None:
                 min-width: 0 !important;
             }}
             .zb-header-name {{
-                font-size: 0.8rem;
+                font-size: 0.85rem;
             }}
             .zb-header-sep {{
                 display: none;
@@ -628,77 +672,19 @@ def inject_premium_styles() -> None:
             }}
         }}
 
-        /* Mobile: top-right button keeps a consistent 44px touch target, never wraps */
-        @media (max-width: 640px) {{
-            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button {{
-                width: 44px !important;
-                min-width: 44px !important;
-                height: 44px !important;
-                min-height: 44px !important;
-                font-size: 1.05rem !important;
-                padding: 0 !important;
-                flex-shrink: 0 !important;
-                margin: 0 !important;
-            }}
-        }}
-
-        /* Native header control buttons — 46px touch targets (after cascade) */
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button {{
-            width: 46px !important;
-            min-width: 46px !important;
-            height: 44px !important;
-            min-height: 44px !important;
-            padding: 0 !important;
-            border-radius: var(--radius-md) !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            position: relative !important;
-            overflow: hidden !important;
-            background: rgba(255, 255, 255, 0.04) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            backdrop-filter: blur(12px) !important;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        }}
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button:hover {{
-            background: rgba(255, 255, 255, 0.08) !important;
-            border-color: rgba(255, 133, 51, 0.4) !important;
-            box-shadow: 0 4px 16px rgba(255, 133, 51, 0.18) !important;
-        }}
-
-        /* Visible, crisp icons for all header navigation buttons */
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button {{
-            color: var(--text-primary) !important;
-            font-size: 1.15rem !important;
-            font-weight: 600 !important;
-            line-height: 1 !important;
-        }}
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button div {{
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }}
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button p {{
-            margin: 0 !important;
-            padding: 0 !important;
-            line-height: 1 !important;
-            color: inherit !important;
-        }}
-        [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button:hover {{
-            color: var(--brand) !important;
-            transform: translateY(-2px) scale(1.06) !important;
-            border-color: rgba(255, 133, 51, 0.45) !important;
-            box-shadow: 0 4px 16px rgba(255, 133, 51, 0.25) !important;
-        }}
         @media (max-width: 480px) {{
-            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) > div .stButton > button {{
-                width: 42px !important;
-                min-width: 42px !important;
-                height: 42px !important;
-                min-height: 42px !important;
-                font-size: 1.05rem !important;
+            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button,
+            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) button {{
+                width: 40px !important;
+                min-width: 40px !important;
+                max-width: 40px !important;
+                height: 40px !important;
+                min-height: 40px !important;
+                max-height: 40px !important;
+            }}
+            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button p,
+            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button span {{
+                font-size: 1.2rem !important;
             }}
         }}
 

@@ -459,20 +459,15 @@ def _inject_body_state(dialog_open: bool = False) -> None:
 
 
 def render_top_bar() -> None:
-    """Premium sticky header: Back, Menu, Brand, Home, and Quick Actions."""
+    """Premium sticky header: Menu, Brand, and Quick Actions."""
     _init_nav_state()
-    cols = st.columns([1, 1, 6, 1, 1])
+    cols = st.columns([1, 6, 1])
     with cols[0]:
-        if st.button("←", key="zb_btn_back", help="Back / Fresh Chat"):
-            save_current_conversation()
-            start_new_conversation()
-            st.rerun()
-    with cols[1]:
-        if st.button("☰", key="zb_btn_menu", help="Open Navigation Menu"):
+        if st.button("☰", key="zb_btn_menu", help="Navigation Menu"):
             st.session_state.show_menu = not st.session_state.get("show_menu", False)
             st.session_state.show_panel = False
             st.rerun()
-    with cols[2]:
+    with cols[1]:
         st.markdown(
             '<div class="zb-header-brand zb-header-anchor">'
             '<span class="zb-header-icon">&#127828;</span>'
@@ -482,13 +477,8 @@ def render_top_bar() -> None:
             '</div>',
             unsafe_allow_html=True,
         )
-    with cols[3]:
-        if st.button("🏠", key="zb_btn_home", help="Home"):
-            save_current_conversation()
-            start_new_conversation()
-            st.rerun()
-    with cols[4]:
-        if st.button("✦", key="zb_btn_panel", help="Quick actions"):
+    with cols[2]:
+        if st.button("⊞", key="zb_btn_panel", help="Quick Actions"):
             st.session_state.show_panel = not st.session_state.get("show_panel", False)
             st.session_state.show_menu = False
             st.rerun()
