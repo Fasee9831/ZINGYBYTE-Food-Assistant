@@ -463,7 +463,7 @@ def render_top_bar() -> None:
     _init_nav_state()
     cols = st.columns([1, 4, 1])
     with cols[0]:
-        if st.button("☰", key="zb_btn_menu", help="Open menu"):
+        if st.button(" ", key="zb_btn_menu", help="Open menu"):
             st.session_state.show_menu = not st.session_state.get("show_menu", False)
             st.session_state.show_panel = False
             st.rerun()
@@ -478,7 +478,7 @@ def render_top_bar() -> None:
             unsafe_allow_html=True,
         )
     with cols[2]:
-        if st.button("✦", key="zb_btn_panel", help="Quick actions"):
+        if st.button(" ", key="zb_btn_panel", help="Quick actions"):
             st.session_state.show_panel = not st.session_state.get("show_panel", False)
             st.session_state.show_menu = False
             st.rerun()
