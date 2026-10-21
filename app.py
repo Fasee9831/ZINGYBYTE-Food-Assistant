@@ -14,6 +14,7 @@ from ui import (
     render_empty_state_screen,
     render_active_chat_bubbles,
     render_chat_bubble,
+    render_typing_indicator,
     render_background,
     _divider,
 )
@@ -183,31 +184,31 @@ def main() -> None:
 
         with st.chat_message("assistant"):
             text_placeholder = st.empty()
+            text_placeholder.markdown(render_typing_indicator(), unsafe_allow_html=True)
 
-            with st.spinner("🍔 Let me check that for you…"):
-                stream_node = execute_grounded_stream(
-                    user_input=active_query,
-                    history_payload=history_payload,
-                    model_name=DEFAULT_MODEL,
-                )
+            stream_node = execute_grounded_stream(
+                user_input=active_query,
+                history_payload=history_payload,
+                model_name=st.session_state.get("selected_model", "auto"),
+            )
 
-                for block in stream_node:
-                    if block["type"] == "token":
-                        response_text += block["content"]
-                        text_placeholder.markdown(
-                            response_text + '<span class="zb-cursor"></span>',
-                            unsafe_allow_html=True,
-                        )
+            for block in stream_node:
+                if block["type"] == "token":
+                    response_text += block["content"]
+                    text_placeholder.markdown(
+                        response_text + '<span class="zb-cursor"></span>',
+                        unsafe_allow_html=True,
+                    )
 
-                    elif block["type"] == "error":
-                        had_error = True
-                        raw = block["content"]
-                        if "image" in raw.lower() or "not support" in raw.lower():
-                            response_text = _IMAGE_ERROR_RESPONSE
-                        else:
-                            response_text = f"⚠️ {raw}"
-                        text_placeholder.error(response_text)
-                        break
+                elif block["type"] == "error":
+                    had_error = True
+                    raw = block["content"]
+                    if "image" in raw.lower() or "not support" in raw.lower():
+                        response_text = _IMAGE_ERROR_RESPONSE
+                    else:
+                        response_text = f"⚠️ {raw}"
+                    text_placeholder.error(response_text)
+                    break
 
             if not had_error:
                 text_placeholder.markdown(response_text)
@@ -218,7 +219,7 @@ def main() -> None:
         })
 
         if not had_error:
-            update_running_summary(DEFAULT_MODEL)
+            update_running_summary(st.session_state.get("selected_model", "auto"))
 
         save_current_conversation()
         st.rerun()

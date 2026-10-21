@@ -38,12 +38,12 @@ def inject_premium_styles() -> None:
             --font-sans        : 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono        : 'SFMono-Regular', 'Cascadia Code', 'Consolas', monospace;
 
-            --fs-hero          : clamp(2rem, 1rem + 4.5vw, 3.75rem);
-            --fs-heading       : clamp(1.1rem, 0.875rem + 1.5vw, 1.35rem);
-            --fs-body          : clamp(0.875rem, 0.8125rem + 0.75vw, 1rem);
-            --fs-small         : clamp(0.75rem, 0.75rem + 0.375vw, 0.8125rem);
-            --fs-xs            : clamp(0.625rem, 0.625rem + 0.25vw, 0.6875rem);
-            --fs-caption       : 0.6875rem;
+            --fs-hero          : clamp(1.85rem, 0.85rem + 4vw, 3.25rem);
+            --fs-heading       : clamp(1rem, 0.8rem + 1.25vw, 1.2rem);
+            --fs-body          : clamp(0.8125rem, 0.78rem + 0.6vw, 0.9375rem);
+            --fs-small         : clamp(0.6875rem, 0.6875rem + 0.3vw, 0.75rem);
+            --fs-xs            : clamp(0.5625rem, 0.5625rem + 0.2vw, 0.625rem);
+            --fs-caption       : 0.625rem;
 
             --lh-none          : 1;
             --lh-tight         : 1.2;
@@ -121,6 +121,7 @@ def inject_premium_styles() -> None:
             width: 100% !important;
             max-width: 100vw !important;
             overflow-x: hidden !important;
+            scroll-behavior: smooth !important;
         }}
 
         *, *::before, *::after {{
@@ -156,32 +157,95 @@ def inject_premium_styles() -> None:
             min-height: 0 !important;
         }}
 
-        /* ── Hide Streamlit chrome — and never let it block clicks ── */
+        /* ── Hide Streamlit chrome — top accent line, header, toolbar, footer, menu ── */
+        [data-testid="stDecoration"],
         #MainMenu, footer, header[data-testid="stHeader"], [data-testid="stToolbar"] {{
             display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
             pointer-events: none !important;
+        }}
+
+        /* ── Hide native top progress & status line ── */
+        div[data-baseweb="progress-bar"],
+        [data-testid="stProgress"],
+        .stProgress,
+        div[class*="stAppProgress"],
+        [data-testid="stStatusWidget"] {{
+            display: none !important;
+            visibility: hidden !important;
+        }}
+
+        /* ── Hide Streamlit's hover action toolbar ── */
+        [data-testid="stElementToolbar"],
+        [data-testid="stElementToolbarButton"] {{
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }}
+
+        /* ── Absolute blanket ban on text selection ── */
+        * {{
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+        }}
+        *::selection {{
+            background: transparent !important;
+            color: inherit !important;
+        }}
+        *::-moz-selection {{
+            background: transparent !important;
+            color: inherit !important;
+        }}
+        /* Keep the chat input editable — text entry must stay selectable */
+        input, textarea, [contenteditable="true"] {{
+            -webkit-user-select: text !important;
+            -moz-user-select: text !important;
+            -ms-user-select: text !important;
+            user-select: text !important;
+        }}
+        input::selection, textarea::selection {{
+            background: rgba(255,133,51,0.35) !important;
+            color: inherit !important;
+        }}
+
+        /* ── Hide native close buttons and ghost tooltips ── */
+        button[title="Close"],
+        button[aria-label="Close"],
+        [data-testid="stSidebarCloseButton"],
+        button[kind="headerNoPadding"] {{
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            height: 0 !important;
         }}
 
         .stApp {{
             background: var(--bg-deep) !important;
         }}
 
-        /* ── Main container (offset for header + sidebar) ── */
-        .main .block-container, [data-testid="stMainBlockContainer"] {{
-            max-width: var(--content-max) !important;
-            padding: calc(var(--header-height) + 20px) var(--pad-lg) 140px var(--pad-lg) !important;
-            margin: 0 auto !important;
-            position: relative;
-            z-index: 1;
-            width: 100%;
-        }}
+            /* ── Main container (offset for header + sidebar) ── */
+            .main .block-container, [data-testid="stMainBlockContainer"] {{
+                max-width: var(--content-max) !important;
+                padding: calc(var(--header-height) + 20px) var(--pad-lg) 170px var(--pad-lg) !important;
+                margin: 0 auto !important;
+                position: relative;
+                z-index: 1;
+                width: 100%;
+            }}
 
         /* ── Seamless responsive gutters: desktop sidebar offset → tablet → mobile drawer ── */
         @media (min-width: 768px) {{
-            .main .block-container, [data-testid="stMainBlockContainer"] {{
+            body.sidebar-open .main .block-container,
+            body.sidebar-open [data-testid="stMainBlockContainer"] {{
                 padding-left: calc(var(--sidebar-width) + var(--pad-lg)) !important;
                 padding-right: var(--pad-lg) !important;
-                padding-bottom: 132px !important;
+                padding-bottom: 168px !important;
                 max-width: var(--content-max) !important;
             }}
         }}
@@ -191,7 +255,7 @@ def inject_premium_styles() -> None:
                 padding-top: calc(var(--header-height) + 20px) !important;
                 padding-left: var(--pad-md) !important;
                 padding-right: var(--pad-md) !important;
-                padding-bottom: 130px !important;
+                padding-bottom: 162px !important;
             }}
         }}
 
@@ -199,13 +263,13 @@ def inject_premium_styles() -> None:
             .main .block-container, [data-testid="stMainBlockContainer"] {{
                 padding-left: var(--pad-md) !important;
                 padding-right: var(--pad-md) !important;
-                padding-bottom: max(132px, 15vh) !important;
+                padding-bottom: max(165px, 18vh) !important;
             }}
         }}
 
         @media (max-width: 480px) {{
             .main .block-container, [data-testid="stMainBlockContainer"] {{
-                padding: calc(var(--header-total) + var(--pad-md)) var(--pad-md) 118px var(--pad-md) !important;
+                padding: calc(var(--header-total) + var(--pad-md)) var(--pad-md) 165px var(--pad-md) !important;
             }}
         }}
 
@@ -361,7 +425,7 @@ def inject_premium_styles() -> None:
         }}
 
         @media (min-width: 768px) {{
-            [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) {{
+            body.sidebar-open [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) {{
                 left: var(--sidebar-width) !important;
                 padding: var(--safe-top) var(--space-5) 0 var(--space-5) !important;
             }}
@@ -490,6 +554,11 @@ def inject_premium_styles() -> None:
             box-shadow: 0 0 8px var(--green-glow);
             display: inline-block;
             flex-shrink: 0;
+            animation: statusPulse 2.2s var(--ease-out) infinite;
+        }}
+        @keyframes statusPulse {{
+            0%, 100% {{ box-shadow: 0 0 6px var(--green-glow); opacity: 1; }}
+            50% {{ box-shadow: 0 0 2px var(--green-glow), 0 0 14px var(--green-glow); opacity: 0.8; }}
         }}
 
         [data-testid="stHorizontalBlock"]:has(.zb-header-anchor) .stButton > button {{
@@ -625,7 +694,7 @@ def inject_premium_styles() -> None:
             background: rgba(0,0,0,0.45) !important;
             backdrop-filter: blur(6px) !important;
             -webkit-backdrop-filter: blur(6px) !important;
-            z-index: 9000 !important;
+            z-index: 999990 !important;
             cursor: default !important;
             animation: heroFade 0.2s var(--ease-out) both;
         }}
@@ -634,13 +703,32 @@ def inject_premium_styles() -> None:
             background: rgba(0,0,0,0.45) !important;
         }}
 
+        /* ── Remove ghost box outlines from drawer backdrops & their wrappers ── */
+        [data-testid*="zb_backdrop_menu"],
+        [data-testid*="zb_backdrop_panel"],
+        [data-testid="stElementContainer"]:has([data-testid*="zb_backdrop"]),
+        button[data-testid*="zb_backdrop"] {{
+            border: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }}
+
+        /* ── Collapse empty Streamlit DOM containers ── */
+        .element-container:empty,
+        [data-testid="stElementContainer"]:empty,
+        [data-testid="stMarkdown"]:empty {{
+            display: none !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }}
+
         /* Drawer panel — fixed glass column (one real stColumn) */
-        [data-testid="stColumn"]:has(.zb-menu-anchor),
-        [data-testid="stColumn"]:has(.zb-panel-anchor) {{
+        [data-testid="stColumn"]:has(.zb-menu-anchor, .zb-panel-anchor) {{
             position: fixed !important;
             top: var(--header-total) !important;
             bottom: 0 !important;
-            z-index: 9001 !important;
+            z-index: 999999 !important;
             width: min(330px, 86vw) !important;
             height: calc(100dvh - var(--header-total)) !important;
             flex: 0 0 auto !important;
@@ -648,7 +736,9 @@ def inject_premium_styles() -> None:
             flex-direction: column !important;
             gap: 0 !important;
             padding: var(--space-3) !important;
+            padding-bottom: 140px !important;
             overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
             overscroll-behavior: contain;
             background: rgba(10,10,10,0.88) !important;
             backdrop-filter: blur(28px) saturate(1.5) !important;
@@ -666,6 +756,97 @@ def inject_premium_styles() -> None:
             border-left: 1px solid var(--border-light) !important;
             border-radius: 20px 0 0 20px !important;
             animation: drawerInRight 0.32s var(--ease-out) both;
+        }}
+
+        /* Inner drawer bottom clearance — last items scroll well clear of the screen bottom */
+        [data-testid="stColumn"]:has(.zb-menu-anchor) > div,
+        [data-testid="stColumn"]:has(.zb-panel-anchor) > div {{
+            padding-bottom: 80px !important;
+        }}
+
+        /* ==========================================================================
+           DRAWER / CHAT INPUT LAYERING
+           The drawer column and stBottom are BOTH position:fixed elements rendered
+           inside section.main's subtree. Their ancestor stacking contexts differ
+           per Streamlit version/DOM, so z-index escalation alone cannot guarantee
+           order (the two values may never compete). While a drawer is open we
+           therefore fully suppress the chat bar — hidden + inert + demoted — so
+           it can never visually cover or intercept the drawer, no matter which
+           stacking context wins. When body.drawer-open is removed, every one of
+           these declarations releases and the bar returns exactly as it was.
+           ========================================================================== */
+
+        /* 1. Chat bar fully suppressed while a drawer/dialog is open */
+        body.drawer-open [data-testid="stBottom"],
+        body.drawer-open [data-testid="stBottom"] > div,
+        body.drawer-open [data-testid="stBottom"] *,
+        body.drawer-open [data-testid="stChatInput"],
+        body.dialog-open [data-testid="stBottom"],
+        body.dialog-open [data-testid="stBottom"] > div,
+        body.dialog-open [data-testid="stBottom"] *,
+        body.dialog-open [data-testid="stChatInput"] {{
+            pointer-events: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            z-index: 100 !important;
+        }}
+
+        /* 2. Lift the whole chat surface so everything inside it (drawer, backdrop)
+              outranks the bar even in nested-context browsers */
+        body.drawer-open section.main,
+        body.drawer-open .main,
+        body.drawer-open [data-testid="stMain"],
+        body.dialog-open section.main,
+        body.dialog-open .main,
+        body.dialog-open [data-testid="stMain"] {{
+            position: relative !important;
+            z-index: 999995 !important;
+        }}
+
+        /* 3. The active drawer panel and its buttons keep full interactivity */
+        body.drawer-open [data-testid="stColumn"]:has(.zb-menu-anchor), [data-testid="stColumn"]:has(.zb-panel-anchor),
+        body.drawer-open [data-testid="stColumn"]:has(.zb-menu-anchor), [data-testid="stColumn"]:has(.zb-panel-anchor) * {{
+            pointer-events: auto !important;
+        }}
+
+        /* 4. Fallback: the drawer renders in the DOM ⇔ it is open. Even if the
+              body class is ever missed, its mere presence suppresses the bar. */
+        body:has([data-testid="stColumn"] .zb-menu-anchor) [data-testid="stBottom"],
+        body:has([data-testid="stColumn"] .zb-menu-anchor) [data-testid="stBottom"] > div,
+        body:has([data-testid="stColumn"] .zb-menu-anchor) [data-testid="stBottom"] *,
+        body:has([data-testid="stColumn"] .zb-menu-anchor) [data-testid="stChatInput"],
+        body:has([data-testid="stColumn"] .zb-panel-anchor) [data-testid="stBottom"],
+        body:has([data-testid="stColumn"] .zb-panel-anchor) [data-testid="stBottom"] > div,
+        body:has([data-testid="stColumn"] .zb-panel-anchor) [data-testid="stBottom"] *,
+        body:has([data-testid="stColumn"] .zb-panel-anchor) [data-testid="stChatInput"] {{
+            pointer-events: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            z-index: 100 !important;
+        }}
+
+        /* 5. Compact drawer on small phones — every item fits above the bottom edge
+              without fighting the chat area: tighter rows, slimmer header/footer */
+        @media (max-width: 767px) {{
+            [data-testid="stColumn"]:has(.zb-menu-anchor, .zb-panel-anchor) {{
+                padding: var(--space-2) !important;
+                padding-bottom: 100px !important;
+                gap: 2px !important;
+            }}
+            [data-testid="stColumn"]:has(.zb-menu-anchor, .zb-panel-anchor) .stButton > button {{
+                padding: 6px 12px !important;
+                min-height: 34px !important;
+                font-size: 0.78rem !important;
+                line-height: 1.2 !important;
+            }}
+            [data-testid="stColumn"]:has(.zb-menu-anchor, .zb-panel-anchor) .zb-drawer-head {{
+                padding: var(--space-1) var(--space-1) var(--space-2) !important;
+                margin-bottom: var(--space-1) !important;
+            }}
+            [data-testid="stColumn"]:has(.zb-menu-anchor, .zb-panel-anchor) .zb-drawer-foot {{
+                padding-top: var(--space-2) !important;
+                font-size: 0.68rem !important;
+            }}
         }}
 
         /* Drawer header / footer */
@@ -891,10 +1072,11 @@ def inject_premium_styles() -> None:
             box-shadow: none !important;
         }}
         [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor) .stButton > button:hover {{
-            background: rgba(255,255,255,0.08) !important;
-            border-color: var(--border-medium) !important;
+            background: rgba(255,133,51,0.09) !important;
+            border-color: rgba(255,133,51,0.45) !important;
             color: var(--text-primary) !important;
-            transform: translateY(-1px) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 10px 28px rgba(255,133,51,0.16) !important;
         }}
         [data-testid="stHorizontalBlock"]:has(.zb-chips-anchor) .stButton > button:active {{
             transform: scale(0.96) !important;
@@ -929,6 +1111,35 @@ def inject_premium_styles() -> None:
             from {{ opacity: 0; transform: translateY(8px) scale(0.98); }}
             to {{ opacity: 1; transform: translateY(0) scale(1); }}
         }}
+
+        /* ── ChatGPT-style thinking pill shown while streaming ── */
+        @keyframes zbTypingBounce {{
+            0%, 60%, 100% {{ transform: translateY(0); opacity: 0.4; }}
+            30% {{ transform: translateY(-5px); opacity: 1; }}
+        }}
+        .zb-typing {{
+            display: inline-flex !important;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-full);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: var(--shadow-sm);
+            animation: bubbleIn 0.3s var(--ease-out) both;
+        }}
+        .zb-typing-dot {{
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--brand), #FFB27A);
+            box-shadow: 0 0 10px var(--brand-glow);
+            animation: zbTypingBounce 1.2s var(--ease-out) infinite;
+        }}
+        .zb-typing-dot:nth-child(2) {{ animation-delay: 0.18s; }}
+        .zb-typing-dot:nth-child(3) {{ animation-delay: 0.36s; }}
 
         .stChatMessage {{
             background: transparent !important;
@@ -968,6 +1179,22 @@ def inject_premium_styles() -> None:
         }}
         [data-testid="chatAvatarIcon-assistant"]::before {{
             content: '\2728';
+        }}
+
+        /* Avatar color coding — warm glass for you, brand glow for ZingyByte */
+        [data-testid="chatAvatarIcon-user"] {{
+            background: linear-gradient(135deg, rgba(16,163,127,0.16), rgba(255,255,255,0.05)) !important;
+            border-color: rgba(16,163,127,0.35) !important;
+            box-shadow: 0 4px 16px rgba(16,163,127,0.12) !important;
+        }}
+        [data-testid="chatAvatarIcon-assistant"] {{
+            background: linear-gradient(135deg, rgba(255,133,51,0.16), rgba(255,255,255,0.05)) !important;
+            border-color: rgba(255,133,51,0.4) !important;
+            box-shadow: 0 0 0 1px rgba(255,133,51,0.12), 0 4px 18px rgba(255,133,51,0.2) !important;
+        }}
+        [data-testid="chatAvatarIcon-user"]::before,
+        [data-testid="chatAvatarIcon-assistant"]::before {{
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));
         }}
 
         /* User bubble — glass card */
@@ -1171,6 +1398,7 @@ def inject_premium_styles() -> None:
             flex-wrap: wrap !important;
             gap: var(--space-2) !important;
             margin-top: var(--space-1) !important;
+            animation: heroFade 0.4s var(--ease-out) 0.15s both;
         }}
         [data-testid="stHorizontalBlock"]:has(.zb-fu-anchor) > [data-testid="stColumn"],
         [data-testid="stHorizontalBlock"]:has(.zb-fu-anchor) > div {{
@@ -1197,9 +1425,11 @@ def inject_premium_styles() -> None:
             white-space: nowrap !important;
         }}
         [data-testid="stHorizontalBlock"]:has(.zb-fu-anchor) .stButton > button:hover {{
-            background: rgba(255,255,255,0.06) !important;
-            border-color: var(--border-light) !important;
+            background: rgba(255,133,51,0.08) !important;
+            border-color: rgba(255,133,51,0.4) !important;
             color: var(--text-primary) !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 8px 20px rgba(255,133,51,0.14) !important;
         }}
 
         @media (max-width: 640px) {{
@@ -1251,9 +1481,9 @@ def inject_premium_styles() -> None:
             box-shadow: 0 12px 48px rgba(0,0,0,0.7), 0 0 0 2px rgba(255,133,51,0.2) !important;
         }}
 
-        /* Sidebar offset for desktop */
+        /* Sidebar offset for desktop — only while the sidebar is actually open */
         @media (min-width: 768px) {{
-            [data-testid="stBottom"] {{
+            body.sidebar-open [data-testid="stBottom"] {{
                 left: var(--sidebar-width) !important;
                 width: calc(100% - var(--sidebar-width)) !important;
             }}
@@ -1339,6 +1569,7 @@ def inject_premium_styles() -> None:
 
         body.sidebar-open [data-testid="stSidebar"] {{
             left: 0 !important;
+            z-index: 999999 !important;
         }}
 
         body.sidebar-open::after {{
@@ -1347,18 +1578,65 @@ def inject_premium_styles() -> None:
             inset: 0;
             top: var(--header-total);
             background: rgba(0,0,0,0.5);
-            z-index: 999;
+            z-index: 999998;
             pointer-events: auto;
             animation: heroFade 0.2s var(--ease-out) both;
         }}
 
+        /* Mobile — sidebar must outrank the fixed chat bar (stBottom) while open */
+        @media (max-width: 767px) {{
+            [data-testid="stSidebar"],
+            body.sidebar-open [data-testid="stSidebar"] {{
+                z-index: 999999 !important;
+            }}
+            [data-testid="stSidebar"] + div,
+            [data-testid="stSidebarOverlay"],
+            body.sidebar-open::after {{
+                z-index: 999998 !important;
+            }}
+            body.sidebar-open section.main,
+            body.sidebar-open .main,
+            body.sidebar-open [data-testid="stMain"] {{
+                position: relative !important;
+                z-index: 999995 !important;
+            }}
+            body.sidebar-open [data-testid="stBottom"],
+            body.sidebar-open [data-testid="stBottom"] > div,
+            body.sidebar-open [data-testid="stBottom"] *,
+            body.sidebar-open [data-testid="stChatInput"] {{
+                pointer-events: none !important;
+                z-index: 100 !important;
+            }}
+            [data-testid="stSidebar"],
+            [data-testid="stSidebar"] *,
+            body.sidebar-open [data-testid="stSidebar"] * {{
+                pointer-events: auto !important;
+            }}
+            body.sidebar-open [data-testid="stSidebar"] {{
+                width: 100vw !important;
+                left: 0 !important;
+                border-right: none !important;
+                border-radius: 0 !important;
+            }}
+            body.sidebar-open [data-testid="stBottom"],
+            body.sidebar-open [data-testid="stBottom"] > div,
+            body.sidebar-open [data-testid="stBottom"] *,
+            body.sidebar-open [data-testid="stChatInput"] {{
+                visibility: hidden !important;
+            }}
+        }}
+
         @media (min-width: 768px) {{
             [data-testid="stSidebar"] {{
-                left: 0 !important;
+                left: -100% !important;
                 top: var(--header-total) !important;
                 width: var(--sidebar-width) !important;
                 height: calc(100dvh - var(--header-total)) !important;
+                z-index: 1000 !important;
                 box-shadow: none !important;
+            }}
+            body.sidebar-open [data-testid="stSidebar"] {{
+                left: 0 !important;
             }}
             body.sidebar-open::after {{
                 display: none !important;
@@ -1366,14 +1644,37 @@ def inject_premium_styles() -> None:
         }}
 
         [data-testid="stSidebarContent"] {{
-            padding: var(--space-4) var(--space-4) calc(2 * var(--safe-bottom)) var(--space-4) !important;
+            padding: var(--space-4) var(--space-4) calc(120px + 2 * var(--safe-bottom)) var(--space-4) !important;
             overflow-y: auto !important;
+            overflow-x: hidden !important;
             height: 100% !important;
+            max-height: 100% !important;
+            -webkit-overflow-scrolling: touch !important;
+            overscroll-behavior: contain !important;
+            scrollbar-width: thin;
         }}
 
         @media (max-width: 480px) {{
             [data-testid="stSidebarContent"] {{
-                padding: var(--space-3) var(--space-3) calc(2 * var(--safe-bottom)) var(--space-3) !important;
+                padding: var(--space-3) var(--space-3) calc(120px + 2 * var(--safe-bottom)) var(--space-3) !important;
+            }}
+        }}
+
+        /* Mobile — sidebar scrolls independently of the page, never the body */
+        @media (max-width: 767px) {{
+            [data-testid="stSidebarContent"] {{
+                height: 100% !important;
+                max-height: 100% !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                overscroll-behavior: contain !important;
+                scroll-padding-top: 0 !important;
+            }}
+            body.sidebar-open,
+            body.sidebar-open [data-testid="stSidebar"],
+            body.sidebar-open [data-testid="stSidebar"] * {{
+                overscroll-behavior: contain !important;
+                touch-action: pan-y !important;
             }}
         }}
 
@@ -1419,11 +1720,52 @@ def inject_premium_styles() -> None:
             border-color: var(--border-light);
         }}
 
+        /* ── Sidebar reopen tab — floats top-left whenever the sidebar is closed ──
+           Visibility is driven by the body class synced from real sidebar geometry
+           (zbSyncSidebar), NOT by :not(.sidebar-open) — so it never flashes on reruns. */
+        .zb-sidebar-reopen {{
+            position: fixed;
+            left: 10px;
+            top: calc(var(--header-total) + 10px);
+            z-index: 999985;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--border-medium);
+            color: var(--text-primary);
+            font-size: 1.05rem;
+            line-height: 1;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            pointer-events: auto;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+            transition: all var(--transition-fast);
+            font-family: var(--font-sans);
+        }}
+        body.sidebar-tab-visible .zb-sidebar-reopen {{
+            display: inline-flex;
+        }}
+        .zb-sidebar-reopen:hover {{
+            background: rgba(255,133,51,0.25);
+            border-color: rgba(255,133,51,0.5);
+            color: #fff;
+        }}
+        body.theme-orange .zb-sidebar-reopen {{
+            background: rgba(255,133,51,0.16);
+            border-color: rgba(255,133,51,0.45);
+            color: var(--text-primary);
+        }}
+
         .zb-section-label {{
             font-size: var(--fs-xs) !important;
             font-weight: var(--fw-semibold) !important;
             color: var(--text-tertiary) !important;
-            margin-bottom: var(--space-2) !important;
+            margin-bottom: 6px !important;
             text-transform: uppercase;
             letter-spacing: 0.06em;
             display: block;
@@ -1431,9 +1773,9 @@ def inject_premium_styles() -> None:
 
         /* ── Conversation items ── */
         .zb-conv-item {{
-            padding: var(--space-2) var(--space-3);
+            padding: 6px 10px;
             border-radius: var(--radius-md);
-            margin-bottom: 2px;
+            margin-bottom: 1px;
             cursor: pointer;
             transition: all var(--transition-fast);
             border: 1px solid transparent;
@@ -1456,13 +1798,14 @@ def inject_premium_styles() -> None:
             overflow: hidden;
             text-overflow: ellipsis;
             display: block;
+            line-height: 1.3;
         }}
         .zb-conv-meta {{
             font-size: var(--fs-xs);
             color: var(--text-tertiary);
             display: flex;
             gap: var(--space-2);
-            margin-top: 2px;
+            margin-top: 1px;
         }}
         .zb-conv-group-label {{
             font-size: var(--fs-xs) !important;
@@ -1470,14 +1813,14 @@ def inject_premium_styles() -> None:
             color: var(--text-tertiary) !important;
             letter-spacing: 0.04em;
             text-transform: uppercase;
-            padding: var(--space-2) 0 var(--space-1);
+            padding: 6px 0 2px;
             display: block;
         }}
         .zb-no-convs {{
             font-size: var(--fs-small);
             color: var(--text-tertiary);
             text-align: center;
-            padding: var(--space-4) 0;
+            padding: var(--space-3) 0;
         }}
 
         /* ── Sidebar buttons ── */
@@ -1506,7 +1849,7 @@ def inject_premium_styles() -> None:
         /* ── Search ── */
         .zb-conv-search {{
             width: 100%;
-            padding: var(--space-2) var(--space-3);
+            padding: 7px 10px;
             background: rgba(255,255,255,0.03);
             border: 1px solid var(--border-subtle);
             border-radius: var(--radius-md);
@@ -1516,7 +1859,7 @@ def inject_premium_styles() -> None:
             outline: none;
             transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
             box-sizing: border-box;
-            margin-bottom: var(--space-2);
+            margin-bottom: 6px;
         }}
         .zb-conv-search:focus {{
             border-color: rgba(255,255,255,0.15);
@@ -1648,7 +1991,7 @@ def inject_premium_styles() -> None:
                 font-size: 0.55rem;
             }}
             .main .block-container {{
-                padding: calc(var(--header-total) + var(--pad-xs)) var(--pad-xs) 115px var(--pad-xs) !important;
+                padding: calc(var(--header-total) + var(--pad-xs)) var(--pad-xs) 168px var(--pad-xs) !important;
             }}
         }}
 
@@ -1661,7 +2004,7 @@ def inject_premium_styles() -> None:
                 padding: 5px 10px;
             }}
             .main .block-container, [data-testid="stMainBlockContainer"] {{
-                padding: calc(var(--header-total) + var(--pad-xs)) var(--pad-md) 118px var(--pad-md) !important;
+                padding: calc(var(--header-total) + var(--pad-xs)) var(--pad-md) 165px var(--pad-md) !important;
             }}
         }}
 
@@ -1699,6 +2042,18 @@ def inject_premium_styles() -> None:
                 max-width: 100% !important;
                 white-space: nowrap !important;
             }}
+            .stChatMessage {{
+                min-width: 0 !important;
+                max-width: 100% !important;
+                overflow: visible !important;
+            }}
+            [data-testid="stChatMessage"] [data-testid="stHorizontalBlock"] {{
+                flex-wrap: wrap !important;
+            }}
+            [data-testid="stChatMessage"] [data-testid="stColumn"] {{
+                min-width: 0 !important;
+                flex: 1 1 0% !important;
+            }}
         }}
 
         /* ── Landscape phones (≤480px tall) — reclaim vertical space ── */
@@ -1707,7 +2062,7 @@ def inject_premium_styles() -> None:
                 --header-height: 44px;
             }}
             .main .block-container {{
-                padding-bottom: 96px !important;
+                padding-bottom: 160px !important;
             }}
             .zb-hero {{
                 padding: 1vh 0 2vh !important;
@@ -1805,6 +2160,51 @@ def inject_premium_styles() -> None:
                 height: 38px !important;
                 min-height: 38px !important;
             }}
+        }}
+
+        /* ── Feedback row: compact like/dislike + status indicator ── */
+        [data-testid="stHorizontalBlock"]:has(.zb-fb-status) {{
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            gap: 6px !important;
+            margin: 2px 0 6px !important;
+        }}
+        [data-testid="stHorizontalBlock"]:has(.zb-fb-status) > [data-testid="stColumn"] {{
+            flex: 0 0 auto !important;
+            width: auto !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            padding: 0 !important;
+        }}
+        [data-testid="stHorizontalBlock"]:has(.zb-fb-status) .stButton > button {{
+            width: 40px !important;
+            min-width: 40px !important;
+            height: 40px !important;
+            min-height: 40px !important;
+            padding: 0 !important;
+            font-size: 1rem !important;
+            line-height: 1 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: rgba(255,255,255,0.02) !important;
+            border: 1px solid var(--border-subtle) !important;
+            border-radius: var(--radius-md) !important;
+            color: var(--text-tertiary) !important;
+            transition: all var(--transition-fast) !important;
+        }}
+        [data-testid="stHorizontalBlock"]:has(.zb-fb-status) .stButton > button:hover {{
+            background: rgba(255,255,255,0.06) !important;
+            color: var(--text-primary) !important;
+            transform: translateY(-1px) !important;
+        }}
+        .zb-fb-status {{
+            font-size: var(--fs-xs);
+            font-weight: var(--fw-medium);
+            color: var(--brand);
+            letter-spacing: 0.02em;
+            white-space: nowrap;
         }}
 
         /* ==========================================================================
@@ -2189,6 +2589,149 @@ def inject_premium_styles() -> None:
                 min-width: max-content !important;
             }}
         }}
+
+        /* ── Prevent chat messages from hiding behind the fixed input bar ── */
+        .main .block-container,
+        [data-testid="stAppViewBlockContainer"],
+        [data-testid="stMainBlockContainer"] {{
+            padding-bottom: clamp(165px, 20vh, 180px) !important;
+        }}
+        /* Auto-scroll (scrollIntoView block:end) aligns the last bubble's bottom
+           with the VIEWPORT bottom — which sits behind the fixed chat bar. The
+           scroll-margin makes the scroller stop above the bar, so no message or
+           follow-up chip ever lands under the input box. */
+        .stChatMessage {{
+            scroll-margin-bottom: 170px;
+        }}
+        @media (max-width: 768px) {{
+            .stChatMessage {{
+                scroll-margin-bottom: 200px;
+            }}
+        }}
+
+        /* ── Toasts: always above the fixed header, never hidden behind it ── */
+        [data-testid="stToast"] {{
+            z-index: 1000001 !important;
+            top: calc(var(--header-total) + 10px) !important;
+            right: 12px !important;
+        }}
+        @media (max-width: 480px) {{
+            [data-testid="stToast"] {{
+                right: 8px !important;
+                left: 8px !important;
+                width: auto !important;
+                max-width: none !important;
+            }}
+        }}
+
+        /* ── Opaque solid background for bottom chat bar so text doesn't bleed through ── */
+        [data-testid="stBottom"] {{
+            z-index: 9999 !important;
+        }}
+        [data-testid="stChatInput"] {{
+            z-index: 9999 !important;
+            background: var(--bg-deep, #0A0A0A) !important;
+            box-shadow: 0 -8px 32px rgba(0,0,0,0.6) !important;
+        }}
+
+        /* ── About dialog — glassmorphic modal (renders above EVERYTHING, incl. chat bar) ── */
+        [data-testid="stDialog"],
+        div[role="dialog"] {{
+            z-index: 1000000 !important;
+            background: rgba(15,15,15,0.75) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            border-radius: 20px !important;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.6) !important;
+            overflow: hidden;
+        }}
+        [data-testid="stDialog"] [data-testid="stDialogScrollableContent"] {{
+            padding: 18px 24px 24px 24px !important;
+        }}
+        [data-testid="stDialog"] h1,
+        [data-testid="stDialog"] h2,
+        [data-testid="stDialog"] h3,
+        [data-testid="stDialog"] h4 {{
+            color: var(--text-primary) !important;
+        }}
+        [data-testid="stDialog"] p,
+        [data-testid="stDialog"] li {{
+            color: var(--text-secondary) !important;
+            line-height: 1.65 !important;
+        }}
+        [data-testid="stDialog"] li {{
+            margin-bottom: 6px !important;
+        }}
+        [data-testid="stDialog"] .stButton > button {{
+            border-radius: var(--radius-full) !important;
+            border: 1px solid rgba(255,133,51,0.4) !important;
+            background: rgba(255,133,51,0.12) !important;
+            color: var(--text-primary) !important;
+            font-weight: var(--fw-semibold) !important;
+            transition: all var(--transition-fast) !important;
+        }}
+        [data-testid="stDialog"] .stButton > button:hover {{
+            background: rgba(255,133,51,0.22) !important;
+            box-shadow: 0 8px 24px rgba(255,133,51,0.2) !important;
+        }}
+
+        /* ── About dialog — mobile: viewport-filling, scrollable top-to-bottom ──
+           Root cause on phones: Streamlit centers stDialog with
+           top:50% + translate(-50%,-50%); content taller than the viewport
+           extends ABOVE the screen, so the top is clipped and the user must
+           fight the page scroll. On mobile we pin the dialog to the viewport
+           (100dvh), drop the centering transform, and let the WHOLE overlay
+           scroll (Streamlit 1.48 has no inner stDialogScrollableContent node —
+           the overlay itself is the only scroll container). Desktop keeps the
+           existing centered card. */
+        @media (max-width: 768px) {{
+            [data-testid="stDialog"] {{
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                width: 100vw !important;
+                max-width: 100vw !important;
+                height: 100dvh !important;
+                max-height: 100dvh !important;
+                margin: 0 !important;
+                transform: none !important;
+                border-radius: 0 !important;
+                display: block !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                overscroll-behavior: contain !important;
+                padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+            }}
+            /* Older Streamlit builds: dedicated scrollable node — scrolls internally */
+            [data-testid="stDialog"] [data-testid="stDialogScrollableContent"] {{
+                flex: 1 1 auto !important;
+                min-height: 0 !important;
+                height: auto !important;
+                max-height: none !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                overscroll-behavior: contain !important;
+                padding: calc(env(safe-area-inset-top, 0px) + 16px) 20px
+                         calc(env(safe-area-inset-bottom, 0px) + 24px) 20px !important;
+            }}
+            /* Background page must not scroll while the dialog is open */
+            body:has([data-testid="stDialog"]) {{
+                overflow: hidden !important;
+                overscroll-behavior: none !important;
+            }}
+            /* Chat bar suppressed while the dialog exists in the DOM (⇔ open) */
+            body:has([data-testid="stDialog"]) [data-testid="stBottom"],
+            body:has([data-testid="stDialog"]) [data-testid="stBottom"] > div,
+            body:has([data-testid="stDialog"]) [data-testid="stBottom"] *,
+            body:has([data-testid="stDialog"]) [data-testid="stChatInput"] {{
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+                z-index: 100 !important;
+            }}
+        }}
         </style>
 
         <script>
@@ -2205,8 +2748,60 @@ def inject_premium_styles() -> None:
             }}
             window.zbSetSidebar = function(open) {{
                 if (zbNavLock()) return;
+                zbSidebarFreeze(450);
                 document.body.classList.toggle('sidebar-open', !!open);
             }};
+            /* Slide-transition guard: while a manual open/close transition is running
+               (300ms), the auto-sync would see mid-animation geometry and undo the
+               request. Freeze the sync until the transition has finished, then let
+               the real geometry be the authority again. */
+            var zbSidebarFreezeUntil = 0;
+            function zbSidebarFreeze(ms) {{
+                zbSidebarFreezeUntil = Date.now() + ms;
+            }}
+            function zbSyncSidebar() {{
+                var sb = document.querySelector('[data-testid="stSidebar"]');
+                if (!sb) return;
+                if (Date.now() < zbSidebarFreezeUntil) return; /* mid-transition — leave the class alone */
+                var rect = sb.getBoundingClientRect();
+                var open = rect.right > rect.width * 0.2;
+                var was = document.body.classList.contains('sidebar-open');
+                document.body.classList.toggle('sidebar-open', open);
+                /* Reopen tab visibility follows the real geometry only (never the
+                   Python one-shot class, so it cannot flash on reruns) */
+                document.body.classList.toggle('sidebar-tab-visible', !open);
+                if (open && !was) {{
+                    /* Always open from the top of the chat list */
+                    sb.scrollTop = 0;
+                    var c = document.querySelector('[data-testid="stSidebarContent"]');
+                    if (c) c.scrollTop = 0;
+                }}
+            }}
+            zbSidebarFreeze(500); /* first load: let the initial class render untouched */
+            window.__zbSidebarFreeze = function(ms) {{ zbSidebarFreeze(ms); }};
+            /* Dialog: snap the scrollable content to the top on first open */
+            var zbDialogWasOpen = false;
+            function zbSyncDialog() {{
+                var d = document.querySelector('[data-testid="stDialog"]');
+                var open = !!d;
+                if (open && !zbDialogWasOpen) {{
+                    var c = d.querySelector('[data-testid="stDialogScrollableContent"]') || d;
+                    if (c) setTimeout(function() {{ c.scrollTop = 0; }}, 80);
+                }}
+                zbDialogWasOpen = open;
+            }}
+            if (window.MutationObserver) {{
+                new MutationObserver(function() {{
+                    setTimeout(zbSyncSidebar, 60);
+                    setTimeout(zbSyncDialog, 60);
+                }})
+                    .observe(document.documentElement, {{
+                        childList: true, subtree: true, attributes: true,
+                        attributeFilter: ['class', 'style', 'aria-hidden'],
+                    }});
+            }}
+            setInterval(zbSyncSidebar, 500);
+            setInterval(zbSyncDialog, 500);
             /* Click any real Streamlit button by key (drives drawer closes through reruns) */
             window.zbClickNav = function(key) {{
                 var el = document.querySelector('button[data-testid*="' + key + '"]');
@@ -2267,6 +2862,7 @@ def inject_premium_styles() -> None:
                 if (e.key === 'Escape') {{
                     window.zbClickNav('zb_backdrop_menu');
                     window.zbClickNav('zb_backdrop_panel');
+                    zbSidebarFreeze(450);
                     document.body.classList.remove('sidebar-open');
                 }}
             }});
@@ -2288,17 +2884,27 @@ def inject_premium_styles() -> None:
                 if (dx > 0 && document.querySelector('.zb-panel-anchor')) window.zbClickNav('zb_backdrop_panel');
             }}, true);
 
-            /* Sidebar close button + tap-outside-to-close (mobile) */
+            /* Sidebar close button + reopen tab + tap-outside-to-close (mobile) */
             document.addEventListener('click', function(e) {{
                 if (!e.target || !e.target.closest) return;
                 if (e.target.closest('[data-zb-action="close"]')) {{
+                    zbSidebarFreeze(450);
                     document.body.classList.remove('sidebar-open');
+                    e.preventDefault();
+                    return;
+                }}
+                if (e.target.closest('[data-zb-action="open-sidebar"]')) {{
+                    zbSidebarFreeze(450);
+                    document.body.classList.add('sidebar-open');
+                    var c = document.querySelector('[data-testid="stSidebarContent"]');
+                    if (c) setTimeout(function() {{ c.scrollTop = 0; }}, 120);
                     e.preventDefault();
                     return;
                 }}
                 if (window.innerWidth < 768) {{
                     var sb = document.querySelector('[data-testid="stSidebar"]');
                     if (sb && !sb.contains(e.target) && document.body.classList.contains('sidebar-open')) {{
+                        zbSidebarFreeze(450);
                         document.body.classList.remove('sidebar-open');
                     }}
                 }}

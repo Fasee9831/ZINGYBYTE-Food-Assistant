@@ -1,6 +1,7 @@
 """Structured operational knowledge base with cached menu, FAQs, and orders."""
 
 import re
+from difflib import SequenceMatcher
 from typing import Dict, Any, List, Optional
 import streamlit as st
 
@@ -55,6 +56,34 @@ MOCK_ORDERS: Dict[str, Dict[str, Any]] = {
     "ZB-4491": {"status": "Delivered", "eta": "Completed", "courier": "Anand S.", "total": 180}
 }
 
+ZINGYBYTE_BRANCHES: Dict[str, Dict[str, str]] = {
+    "Koramangala Flagship": {
+        "address": "24, 5th Block, Koramangala, Bengaluru, 560095",
+        "hours": "9:00 AM – 11:30 PM (all days)",
+        "facilities": "Dine-in, Takeaway, Drive-through",
+        "contact": "+91 98765 01001"
+    },
+    "HSR Layout": {
+        "address": "1232, 27th Main Rd, Sector 1, HSR Layout, Bengaluru, 560102",
+        "hours": "10:00 AM – 11:00 PM (all days)",
+        "facilities": "Dine-in, Takeaway, Delivery hub",
+        "contact": "+91 98765 01002"
+    },
+    "Indiranagar": {
+        "address": "100 Feet Road, Indiranagar, Bengaluru, 560038",
+        "hours": "11:00 AM – 11:30 PM (all days)",
+        "facilities": "Dine-in, Takeaway, Rooftop seating",
+        "contact": "+91 98765 01003"
+    }
+}
+
+ZINGYBYTE_COUPONS: Dict[str, Dict[str, str]] = {
+    "ZINGY20": {"deal": "20% OFF on bills above ₹499", "validity": "Valid till this month end"},
+    "FREEDEL": {"deal": "Free delivery on orders above ₹300", "validity": "Valid on all delivery orders"},
+    "WELCOME10": {"deal": "10% OFF on your first order", "validity": "New customers only, single use"},
+    "BIRYANIDAY": {"deal": "Flat ₹50 OFF on any biryani", "validity": "Fridays only"}
+}
+
 
 @st.cache_data(show_spinner=False)
 def _get_cached_menu() -> Dict:
@@ -71,6 +100,16 @@ def _get_cached_orders() -> Dict:
     return MOCK_ORDERS
 
 
+@st.cache_data(show_spinner=False)
+def _get_cached_branches() -> Dict:
+    return ZINGYBYTE_BRANCHES
+
+
+@st.cache_data(show_spinner=False)
+def _get_cached_coupons() -> Dict:
+    return ZINGYBYTE_COUPONS
+
+
 def _normalize(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "", (text or "").lower())
 
@@ -80,11 +119,12 @@ def _get_menu_items() -> List[Dict]:
 
 
 def search_menu_dish(phrase: str) -> Optional[Dict]:
-    """Resolve a (possibly fuzzy) dish phrase to its canonical {name, price}."""
+    """Resolve a (possibly misspelled / differently-cased) dish phrase to its canonical {name, price}."""
     target = _normalize(phrase)
     if not target:
         return None
-    for item in _get_menu_items():
+    items = _get_menu_items()
+    for item in items:
         norm_name = _normalize(item["name"])
         if (
             target == norm_name
@@ -92,6 +132,15 @@ def search_menu_dish(phrase: str) -> Optional[Dict]:
             or (len(norm_name) >= 4 and norm_name in target)
         ):
             return {"name": item["name"], "price": item["price"]}
+
+    # Fuzzy fallback: closest menu item by character similarity (handles typos)
+    best_item, best_score = None, 0.0
+    for item in items:
+        score = SequenceMatcher(None, target, _normalize(item["name"])).ratio()
+        if score > best_score:
+            best_item, best_score = item, score
+    if best_item is not None and best_score >= 0.55:
+        return {"name": best_item["name"], "price": best_item["price"]}
     return None
 
 
@@ -101,6 +150,8 @@ def query_knowledge_context(user_query: str) -> str:
     menu = _get_cached_menu()
     faqs = _get_cached_faqs()
     orders = _get_cached_orders()
+    branches = _get_cached_branches()
+    coupons = _get_cached_coupons()
 
     # Initialize session state favorites if not present
     if "favorite_dishes" not in st.session_state:
@@ -110,14 +161,19 @@ def query_knowledge_context(user_query: str) -> str:
     if "favorite" in query_lower or "favourite" in query_lower:
         # Action A: Add to favorites
         if any(w in query_lower for w in ["add", "make", "save", "mark", "set"]):
-            for category, items in menu.items():
-                for item in items:
-                    if item["name"].lower() in query_lower:
-                        st.session_state.favorite_dishes[item["name"]] = item["price"]
-                        return (
-                            f"SYSTEM_NOTE: '{item['name']}' (₹{item['price']}) has been saved to favorites.\n"
-                            f"Confirm cleanly to the user that '{item['name']}' is now in their favorites."
-                        )
+            marker = re.search(r"\b(?:favorite|favourite|fav)s?\b", query_lower)
+            region = query_lower[: marker.start()] if marker else query_lower
+            region = re.sub(
+                r"\b(add|make|save|set|mark|keep|please|the|a|an|me|to|my|for|"
+                r"dish|item|food|menu|list|now)\b", " ", region
+            )
+            dish = search_menu_dish(region)
+            if dish is not None:
+                st.session_state.favorite_dishes[dish["name"]] = dish["price"]
+                return (
+                    f"SYSTEM_NOTE: '{dish['name']}' (₹{dish['price']}) has been saved to favorites.\n"
+                    f"Confirm cleanly to the user that '{dish['name']}' is now in their favorites."
+                )
 
         # Action B: Retrieve favorites
         favs = st.session_state.favorite_dishes
@@ -162,10 +218,40 @@ def query_knowledge_context(user_query: str) -> str:
                 f"- **Transaction Invoice Amount**: ₹{telemetry['total']}\n"
             )
 
-    general_triggers = ["menu", "detail", "food", "eat", "hungry", "suggest", "recommend", "option", "what", "have", "list", "crav"]
+    # ── 3. Branch / Location / Outlet ──
+    branch_intent = False
+    branch_triggers = ["branch", "outlet", "store", "address", "location", "where are you",
+                       "dine", "visit", "franchise", "shop floor", "near me"]
+    if any(trigger in query_lower for trigger in branch_triggers):
+        branch_intent = True
+        chunk = "### ZINGYBYTE Branches:\n"
+        for name, info in branches.items():
+            chunk += (
+                f"- **{name}**\n"
+                f"  • *Address*: {info['address']}\n"
+                f"  • *Hours*: {info['hours']}\n"
+                f"  • *Facilities*: {info['facilities']}\n"
+                f"  • *Contact*: {info['contact']}\n"
+            )
+        context_chunks.append(chunk)
+
+    # ── 4. Coupons / Offers / Promo Codes ──
+    offer_intent = False
+    offer_triggers = ["coupon", "offer", "promo", "discount", "deal", "voucher", "code", "cashback"]
+    if any(trigger in query_lower for trigger in offer_triggers):
+        offer_intent = True
+        chunk = "### ZINGYBYTE Active Coupons & Offers:\n"
+        for code, details in coupons.items():
+            chunk += f"- **{code}** — {details['deal']} ({details['validity']})\n"
+        chunk += "\nSYSTEM_NOTE: Quote coupon codes exactly as written above. Never invent codes."
+        context_chunks.append(chunk)
+
+    # ── 5. Full Menu or Lightweight Overview (Token-Conserving) ──
+    general_triggers = ["menu", "food", "eat", "hungry", "suggest", "recommend", "option", "what to order", "catalog", "dishes"]
     wants_menu = any(trigger in query_lower for trigger in general_triggers)
 
-    if wants_menu or (not found_specific_category and not is_order_query):
+    if wants_menu:
+        # User explicitly asked for dishes/recommendations/menu
         context_chunks.append("### Full ZINGYBYTE Menu Catalog")
         for category, items in menu.items():
             chunk = f"\n#### {category}\n"
@@ -173,8 +259,88 @@ def query_knowledge_context(user_query: str) -> str:
                 cust_status = "Customisable" if item['customisable'] else "Fixed Preparation"
                 chunk += f"- **{item['name']}**: ₹{item['price']} | {item['rating']} ⭐ | {cust_status}\n  *Description*: {item['desc']}\n"
             context_chunks.append(chunk)
+    elif not found_specific_category and not is_order_query and not branch_intent and not offer_intent:
+        # Conversational / greeting query: concise summary avoids exhausting token rate limits
+        context_chunks.append(
+            "### ZINGYBYTE Overview & Menu Highlights:\n"
+            "ZingyByte is your friendly virtual food concierge. Available Categories: Biryani, Cool Drinks, Burgers, Pizza, Broasted Chicken, Shawarma, and Sandwiches.\n"
+            "SYSTEM_NOTE: For greetings or general talk, reply warmly, introduce yourself as ZingyByte AI, and invite the user to explore a category or ask about their order!"
+        )
 
     if not context_chunks:
-        return "### ZINGYBYTE Baseline Profile Info:\nGeneral user interaction. Provide general support for ordering from the ZINGYBYTE catalog."
+        return "### ZINGYBYTE Baseline Profile Info:\nGeneral user interaction. Provide warm, helpful support for ordering from the ZINGYBYTE catalog."
 
     return "\n\n".join(context_chunks)
+
+
+
+def generate_local_fallback_response(user_query: str) -> str:
+    """Zero-token local response generator when all cloud API limits are exhausted."""
+    query_lower = user_query.lower()
+    menu = _get_cached_menu()
+    faqs = _get_cached_faqs()
+    orders = _get_cached_orders()
+    branches = _get_cached_branches()
+    coupons = _get_cached_coupons()
+
+    # 1. Live Order Tracking (e.g. ZB-9874)
+    for order_id, telemetry in orders.items():
+        if order_id.lower() in query_lower:
+            return (
+                f"🛵 **Order Status [{order_id}]:**\n\n"
+                f"• **Status:** {telemetry['status']}\n"
+                f"• **Estimated Delivery Time (ETA):** {telemetry['eta']}\n"
+                f"• **Courier Agent:** {telemetry['courier']}\n"
+                f"• **Total Invoice:** ₹{telemetry['total']}\n\n"
+                f"Your order is being handled with care! ✨"
+            )
+
+    # 2. Active Coupons & Discounts
+    if any(w in query_lower for w in ["coupon", "offer", "discount", "deal", "code", "promo"]):
+        lines = ["🎟️ **ZingyByte Active Coupons & Deals:**\n"]
+        for code, details in coupons.items():
+            lines.append(f"• **`{code}`** — {details['deal']} *({details['validity']})*")
+        lines.append("\nApply any of these at checkout to save on your order!")
+        return "\n".join(lines)
+
+    # 3. Branch Locations & Hours
+    if any(w in query_lower for w in ["branch", "outlet", "location", "address", "where are you", "near me"]):
+        lines = ["📍 **ZingyByte Branches & Dine-In Spots:**\n"]
+        for b_name, b_info in branches.items():
+            lines.append(f"• **{b_name}**\n  Address: {b_info['address']}\n  Hours: {b_info['hours']}\n  Facilities: {b_info['facilities']}")
+        return "\n".join(lines)
+
+    # 4. FAQs (delivery fees, cancel policy, payment)
+    for faq in faqs:
+        words = [w for w in faq["question"].lower().replace('?', '').split() if len(w) > 3]
+        if any(w in query_lower for w in words):
+            return f"ℹ️ **{faq['question']}**\n\n{faq['answer']}"
+
+    # 5. Specific Category or Dish Match
+    for cat_name, items in menu.items():
+        if cat_name.lower() in query_lower or any(it["name"].lower() in query_lower for it in items):
+            lines = [f"🍽️ **{cat_name} Choices on Our Menu:**\n"]
+            for item in items:
+                cust = " *(Customisable)*" if item["customisable"] else ""
+                lines.append(f"• **{item['name']}** — ₹{item['price']} | {item['rating']} ⭐{cust}\n  _{item['desc']}_")
+            return "\n".join(lines)
+
+    # 6. General Menu Request
+    if any(w in query_lower for w in ["menu", "food", "eat", "hungry", "dishes", "recommend", "suggest", "options"]):
+        lines = ["🍔 **Welcome to ZingyByte! Here are our delicious categories:**\n"]
+        for cat_name, items in menu.items():
+            dish_names = ", ".join([it["name"] for it in items[:2]])
+            lines.append(f"• **{cat_name}**: e.g., {dish_names}...")
+        lines.append("\nJust ask me about any category (e.g., *'Show me pizzas'* or *'Biryani prices'*) and I'll give you all the details!")
+        return "\n".join(lines)
+
+    # 7. Warm Conversational Greeting
+    return (
+        "👋 **Hello there! Welcome to ZingyByte AI!** 🍔✨\n\n"
+        "I'm your 24/7 food buddy. I can help you with:\n"
+        "• 🍕 Menu prices, ratings & recommendations\n"
+        "• 🛵 Live order tracking (e.g., *ZB-9874*)\n"
+        "• 🎟️ Active discount coupon codes\n"
+        "• 📍 Branch locations & delivery details\n\n"
+        "What can I get started for you today?"
+    )

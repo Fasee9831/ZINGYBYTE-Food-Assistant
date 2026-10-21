@@ -7,6 +7,7 @@ single source of truth; the LLM gets the same store via ``knowledge._build_favor
 
 import re
 import uuid
+from difflib import SequenceMatcher
 from typing import Dict, List, Optional, Tuple
 import streamlit as st
 from knowledge import ZINGYBYTE_MENU, search_menu_dish
@@ -80,7 +81,22 @@ def detect_add_favorite_intent(user_input: str) -> Optional[str]:
     region = region.replace("heart", " ")
     words = [w for w in region.split() if w not in _FILLERS]
     dish = " ".join(words).strip(" .,'\"!?")
-    return dish if _plausible_dish(dish) else None
+    if _plausible_dish(dish):
+        return dish
+
+    # Last chance: fuzzy-match the best candidate phrase against the menu (handles typos)
+    best_item, best_score = None, 0.0
+    for cand in (dish, region, text):
+        cand_norm = _normalize(cand)
+        if not cand_norm:
+            continue
+        for item in _all_menu_items():
+            score = SequenceMatcher(None, cand_norm, _normalize(item["name"])).ratio()
+            if score > best_score:
+                best_item, best_score = item, score
+    if best_item is not None and best_score >= 0.55:
+        return best_item["name"]
+    return None
 
 
 def _plausible_dish(dish: str) -> bool:

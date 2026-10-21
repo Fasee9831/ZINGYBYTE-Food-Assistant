@@ -2,7 +2,7 @@
 
 from datetime import datetime
 import streamlit as st
-from config import PLATFORM_NAME
+from config import PLATFORM_NAME, AVAILABLE_MODELS
 from prompt import SUGGESTED_PROMPTS
 from utils import (
     save_current_conversation, load_conversation,
@@ -107,7 +107,7 @@ def render_sidebar_controls() -> None:
             "<p class='zb-section-label'>&#9881;&#65039; Actions</p>",
             unsafe_allow_html=True,
         )
-        if st.button("&#x1F4C4; New Chat", use_container_width=True, help="Save current chat and start fresh"):
+        if st.button("\U0001F4C4 New Chat", use_container_width=True, help="Save current chat and start fresh"):
             start_new_conversation()
             st.rerun()
 
@@ -137,6 +137,34 @@ def render_sidebar_controls() -> None:
 
         _divider()
 
+        # ── AI Model Engine (Rate Limit Protected) ──
+        st.markdown(
+            "<p class='zb-section-label'>⚡ AI Engine</p>",
+            unsafe_allow_html=True,
+        )
+        model_keys = list(AVAILABLE_MODELS.keys())
+        current_model = st.session_state.get("selected_model", "auto")
+        current_idx = 0
+        for idx, (label, m_id) in enumerate(AVAILABLE_MODELS.items()):
+            if m_id == current_model:
+                current_idx = idx
+                break
+
+        chosen_label = st.selectbox(
+            "AI Model",
+            options=model_keys,
+            index=current_idx,
+            label_visibility="collapsed",
+            help="⚡ Auto Mode switches between models instantly if one hits traffic limits, ensuring unlimited continuous chat."
+        )
+        st.session_state.selected_model = AVAILABLE_MODELS[chosen_label]
+        st.markdown(
+            "<div style='font-size:11px;color:#10A37F;margin-top:2px;'>🛡️ Unlimited Chat Protection Active</div>",
+            unsafe_allow_html=True
+        )
+
+        _divider()
+
         # ── Text Scale ──
         st.markdown(
             "<p class='zb-section-label'>&#127912; Text Scale</p>",
@@ -156,6 +184,7 @@ def render_sidebar_controls() -> None:
         st.markdown(
             '<div class="zb-kbd-hint">'
             '<kbd>Ctrl</kbd>+<kbd>K</kbd> Jump to chat &middot; '
+            '<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd> Search &middot; '
             '<kbd>Esc</kbd> Close menu'
             '</div>',
             unsafe_allow_html=True
@@ -193,16 +222,16 @@ def _render_conversation_item(conv_id: str, conv: Conversation) -> None:
 
     cols = st.columns([1, 1, 1, 2])
     with cols[0]:
-        if st.button("&#9654;", key=f"load_{conv_id}", help="Load conversation"):
+        if st.button("\u25B6", key=f"load_{conv_id}", help="Load conversation"):
             save_current_conversation()
             load_conversation(conv_id)
             st.rerun()
     with cols[1]:
-        if st.button("&#9998;", key=f"rename_{conv_id}", help="Rename"):
+        if st.button("\u270E", key=f"rename_{conv_id}", help="Rename"):
             st.session_state.renaming_conv = conv_id
             st.rerun()
     with cols[2]:
-        if st.button("&#10005;", key=f"delete_{conv_id}", help="Delete"):
+        if st.button("\u2715", key=f"delete_{conv_id}", help="Delete"):
             if conv_id in st.session_state.conversations:
                 del st.session_state.conversations[conv_id]
                 if conv_id == st.session_state.current_conv_id:
@@ -236,15 +265,12 @@ MENU_ITEMS: list = [
     ("🏠", "Home", "menu_home", "home"),
     ("💬", "New Chat", "menu_new", "new"),
     ("📝", "Conversation Summary", "menu_summary", "summary"),
-    ("🔍", "Search Chats", "menu_search", "search"),
     ("❤️", "Favorites", "menu_fav", "favorites"),
     ("🍕", "Browse Menu", "menu_browse", "browse"),
     ("🛵", "Track Orders", "menu_orders", "orders"),
     ("🎁", "Offers", "menu_offers", "offers"),
     ("⭐", "Recommended Meals", "menu_reco", "recommended"),
-    ("⚙️", "Settings", "menu_settings", "settings"),
     ("🎨", "Theme", "menu_dark", "dark"),
-    ("🔠", "Font Size", "menu_font", "font"),
     ("❓", "Help", "menu_help", "help"),
     ("ℹ️", "About", "menu_about", "about"),
 ]
@@ -282,6 +308,10 @@ def _init_nav_state() -> None:
     ):
         if key not in st.session_state:
             st.session_state[key] = default
+    # Desktop keeps the sidebar open at load (one-shot); mobile starts closed
+    if not st.session_state.get("is_mobile") and not st.session_state.get("_sidebar_initialized"):
+        st.session_state.open_sidebar = True
+        st.session_state._sidebar_initialized = True
 
 
 def _close_overlays() -> None:
@@ -311,16 +341,6 @@ def _handle_menu_action(action: str) -> None:
         start_new_conversation()
         st.rerun()
         return
-    if action in ("settings", "font"):
-        st.session_state.open_sidebar = True
-        st.rerun()
-        return
-    if action == "search":
-        st.session_state.open_sidebar = True
-        st.session_state._focus_search = True
-        st.session_state.search_query = ""
-        st.rerun()
-        return
     if action == "summary":
         if st.session_state.get("messages"):
             st.session_state.input_injection = "Can you give me a quick summary of our conversation so far?"
@@ -340,7 +360,7 @@ def _handle_menu_action(action: str) -> None:
         st.rerun()
         return
     if action == "about":
-        st.toast("ZingyByte AI v2.0 — your virtual food concierge 🍔✨")
+        st.session_state.show_about_dialog = True
         st.rerun()
         return
     query = _MENU_QUERIES.get(action)
@@ -352,7 +372,7 @@ def _handle_menu_action(action: str) -> None:
 def _render_drawer(side: str) -> None:
     """Premium slide-in drawer. Items are REAL Streamlit buttons."""
     if side == "menu":
-        anchor, backdrop_key, title, sub = "zb-menu-anchor", "zb_backdrop_menu", "Menu", "Home · chats · settings"
+        anchor, backdrop_key, title, sub = "zb-menu-anchor", "zb_backdrop_menu", "Menu", "Home · menu · help"
         items = MENU_ITEMS
         cols = st.columns([2, 3])
         panel_col = cols[0]
@@ -397,17 +417,16 @@ def _render_drawer(side: str) -> None:
                     st.session_state.input_injection = query
                     st.rerun()
 
-        st.markdown('<div class="zb-drawer-foot">Esc or tap outside to close · swipe to dismiss</div>', unsafe_allow_html=True)
+        st.markdown('<div class="zb-drawer-foot">Esc or tap outside to close</div>', unsafe_allow_html=True)
 
 
-def _inject_body_state() -> None:
+def _inject_body_state(dialog_open: bool = False) -> None:
     """Keep the DOM <body> classes in sync with Python session state (rerun-safe)."""
     has_chat = "true" if st.session_state.get("messages") else "false"
     drawer = ("true" if (st.session_state.get("show_menu") or st.session_state.get("show_panel"))
               else "false")
     sidebar_open = "true" if st.session_state.get("open_sidebar") else "false"
     orange = "true" if st.session_state.get("theme", "dark") == "orange" else "false"
-    focus_search = "true" if st.session_state.pop("_focus_search", False) else "false"
     st.session_state.open_sidebar = False  # one-shot — closing remains class driven
     st.markdown(
         f"""
@@ -415,14 +434,22 @@ def _inject_body_state() -> None:
         (function() {{
             document.body.classList.toggle('has-chat', {has_chat});
             document.body.classList.toggle('drawer-open', {drawer});
-            document.body.classList.toggle('sidebar-open', {sidebar_open});
+            document.body.classList.toggle('dialog-open', {dialog_open});
             document.body.classList.toggle('theme-light', false);
             document.body.classList.toggle('theme-orange', {orange});
-            if ({focus_search}) {{
-                setTimeout(function() {{
-                    var s = document.querySelector('[data-testid="stSidebar"] [data-testid="stTextInput"] input');
-                    if (s) s.focus();
-                }}, 350);
+            /* Sidebar class: honor Python's explicit open, otherwise mirror the
+               sidebar's REAL geometry so reruns never fight the JS close/open */
+            if ({sidebar_open}) {{
+                document.body.classList.add('sidebar-open');
+                if (window.__zbSidebarFreeze) window.__zbSidebarFreeze(500);
+            }} else {{
+                var __zbSB = document.querySelector('[data-testid="stSidebar"]');
+                if (__zbSB) {{
+                    var __zbR = __zbSB.getBoundingClientRect();
+                    if (!(__zbR.right > __zbR.width * 0.2)) {{
+                        document.body.classList.remove('sidebar-open');
+                    }}
+                }}
             }}
         }})();
         </script>
@@ -456,20 +483,50 @@ def render_top_bar() -> None:
             st.session_state.show_menu = False
             st.rerun()
 
+    # Sidebar reopen tab — fixed top-left, visible only while the sidebar is closed
+    st.markdown(
+        '<button class="zb-sidebar-reopen" data-zb-action="open-sidebar" aria-label="Open sidebar" title="Open sidebar">&#9776;</button>',
+        unsafe_allow_html=True,
+    )
+
     if st.session_state.get("show_menu"):
         _render_drawer("menu")
     if st.session_state.get("show_panel"):
         _render_drawer("panel")
 
-    _inject_body_state()
+    dialog_open = st.session_state.get("show_about_dialog", False)
+    if dialog_open:
+        render_about_modal()
+        st.session_state.show_about_dialog = False
+
+    _inject_body_state(dialog_open=dialog_open)
 
 
-# ──────────────────────────────────────────────────────────
-# WELCOME SECTION (Deprecated)
-# ──────────────────────────────────────────────────────────
+@st.dialog("About ZingyByte AI")
+def render_about_modal() -> None:
+    """Glassmorphic About dialog — explains the app in plain, friendly English."""
+    st.markdown(
+        """
+        ### 🍔 ZingyByte AI v2.0 — Virtual Food Concierge
 
-def render_welcome_section() -> None:
-    pass
+        #### 🚀 Smart Technology Under the Hood
+        * **Lightning-Fast AI:** Powered by advanced tech to give you instant, smart responses without the wait.
+        * **Accurate Menu Search:** Our system reads the actual menu, ensuring you get 100% real prices, ingredients, and dietary info—no guesswork.
+        * **Natural Conversations:** The AI remembers your chat and replies in real-time, just like texting a friend.
+
+        #### ✨ App Features You'll Love
+        * **🛵 Live Order Tracking:** Keep an eye on your food's journey in real-time using your unique order code (like ZB-9874).
+        * **❤️ Smart Favorites:** Just tell the AI what you loved, and it will remember your favorite dishes for next time.
+        * **🎨 Sleek & Modern Design:** Enjoy a beautiful, easy-on-the-eyes dark interface with frosted glass effects.
+
+        ---
+        *Crafted for effortless food discovery. Tap anywhere outside or press Esc to return to chat.*
+        """,
+        unsafe_allow_html=True,
+    )
+    if st.button("⬅️ Back to Chat", use_container_width=True):
+        st.session_state.show_about_dialog = False
+        st.rerun()
 
 
 # ──────────────────────────────────────────────────────────
@@ -488,7 +545,8 @@ def render_empty_state_screen() -> None:
         unsafe_allow_html=True,
     )
 
-    # Adaptive chip grid — 1 column of full-width pills on mobile, auto-flow on desktop
+    # Adaptive chip grid — full-width pills on narrow containers, auto-flow row on
+    # Adaptive chip grid — 2 columns of pills on mobile, one row on desktop
     n_cols = 2 if _is_mobile() else len(SUGGESTED_PROMPTS)
     cols = st.columns(n_cols)
     for idx, card in enumerate(SUGGESTED_PROMPTS):
@@ -514,22 +572,47 @@ def render_chat_bubble(role: str, content: str) -> None:
         st.markdown(f'<div class="zb-ts">{stamp}</div>', unsafe_allow_html=True)
 
 
+def render_typing_indicator() -> str:
+    """HTML for the ChatGPT-style 'thinking' pill shown while streaming."""
+    return (
+        '<div class="zb-typing" aria-label="ZingyByte is typing">'
+        '<span class="zb-typing-dot"></span>'
+        '<span class="zb-typing-dot"></span>'
+        '<span class="zb-typing-dot"></span>'
+        '</div>'
+    )
+
+
 def _render_bubble_actions(idx: int, content: str) -> None:
-    """Native feedback row: like / dislike / share."""
+    """Feedback row: like / dislike with an instant status indicator.
+
+    Button labels stay static because Streamlit 1.48's frontend does not
+    re-render `st.button` labels after a rerun; the selection state is shown
+    by a markdown indicator computed AFTER the click handlers run, so it
+    reflects the click in the very same frame as the toast.
+    """
     feedback = st.session_state.setdefault("msg_feedback", {})
-    cols = st.columns(3)
+    current = feedback.get(idx, 0)
+
+    cols = st.columns([1, 1, 3])
     with cols[0]:
-        if st.button("❤️" if feedback.get(idx) == 1 else "👍", key=f"like_{idx}", help="Like"):
-            feedback[idx] = 1
-            st.toast("Thanks for the feedback! ❤️")
+        liked = st.button("👍", key=f"like_{idx}")
     with cols[1]:
-        if st.button("💔" if feedback.get(idx) == -1 else "👎", key=f"dislike_{idx}", help="Dislike"):
-            feedback[idx] = -1
-            st.toast("Feedback noted — we'll improve!")
+        disliked = st.button("👎", key=f"dislike_{idx}")
+
+    if liked:
+        feedback[idx] = 0 if current == 1 else 1
+        st.toast("Thanks for the feedback! ❤️" if current != 1 else "Feedback removed")
+    elif disliked:
+        feedback[idx] = 0 if current == -1 else -1
+        st.toast("Feedback noted — we'll improve! 👍" if current != -1 else "Feedback removed")
+
     with cols[2]:
-        st.download_button(
-            "↗", data=content, file_name=f"zingybyte_message_{idx}.txt",
-            mime="text/plain", key=f"share_{idx}", help="Share this message",
+        now = feedback.get(idx, 0)
+        status = "❤️ Liked" if now == 1 else ("💔 Disliked" if now == -1 else "")
+        st.markdown(
+            f'<span class="zb-fb-status">{status}</span>',
+            unsafe_allow_html=True,
         )
 
 
@@ -570,23 +653,46 @@ def render_active_chat_bubbles() -> None:
             suggestions = generate_followup_suggestions(last_user, last_content)
             render_followup_questions(suggestions)
 
-    # ── Auto-scroll: snap the main chat container to the latest message ──
+    # ── Precision auto-scroll to the last chat bubble ──
     st.markdown(
         """
         <script>
-            const scrollToBottom = () => {
-                const mainContainer = window.parent.document.querySelector('.main');
-                if (mainContainer) {
-                    mainContainer.scrollTo({
-                        top: mainContainer.scrollHeight,
-                        behavior: 'smooth'
-                    });
+            (function() {
+                function scrollToLatestMessage() {
+                    const messages = document.querySelectorAll('.stChatMessage');
+                    if (messages.length > 0) {
+                        const lastMessage = messages[messages.length - 1];
+                        lastMessage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+                    }
+                    const mainContainer = document.querySelector('section.main') || document.querySelector('.main');
+                    if (mainContainer) {
+                        mainContainer.scrollTop = mainContainer.scrollHeight;
+                    }
                 }
-            };
-            // Run immediately
-            scrollToBottom();
-            // Run again slightly delayed to catch DOM updates after streaming
-            setTimeout(scrollToBottom, 300);
+
+                scrollToLatestMessage();
+                setTimeout(scrollToLatestMessage, 100);
+                setTimeout(scrollToLatestMessage, 350);
+
+                if (window.__zbScrollObserver) {
+                    window.__zbScrollObserver.disconnect();
+                }
+                const targetContainer = document.querySelector('section.main') || document.body;
+                if (targetContainer && 'MutationObserver' in window) {
+                    let isUserScrollingUp = false;
+                    targetContainer.addEventListener('scroll', function() {
+                        isUserScrollingUp = targetContainer.scrollHeight - targetContainer.scrollTop - targetContainer.clientHeight > 200;
+                    }, { passive: true });
+
+                    const observer = new MutationObserver(function() {
+                        if (!isUserScrollingUp) {
+                            scrollToLatestMessage();
+                        }
+                    });
+                    observer.observe(targetContainer, { childList: true, subtree: true, characterData: true });
+                    window.__zbScrollObserver = observer;
+                }
+            })();
         </script>
         """,
         unsafe_allow_html=True,

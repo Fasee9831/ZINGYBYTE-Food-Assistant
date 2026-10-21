@@ -11,7 +11,11 @@ A friendly AI food assistant that helps customers explore menus, track orders, a
 - **FAQ Answers** — Get instant answers about delivery fees, policies, and payment options
 - **Fast Streaming Responses** — Responses appear word-by-word in real-time
 - **Premium UI** — Dark glassmorphic design with floating food animations
-- **Conversation History** — Auto-saved chats with search, rename, and time-based grouping
+- **Slide-In Drawers** — ☰ menu (Home, New Chat, Summary, Favorites, Browse, Track, Offers, Theme, Help, About) and ✦ quick actions (Burgers, Pizza, Biryani, Track Order, Offers, Support…)
+- **Theme Switching** — Dark or Orange theme, toggle anytime from the menu drawer
+- **About Dialog** — Full-screen scrollable About page on mobile, glass card on desktop
+- **Conversation History** — Auto-saved chats with search, rename, delete, and day grouping
+- **Favorites Filter** — Sidebar toggle to show only chats with saved favorite dishes
 - **Conversation Summary** — One-tap summary of your current chat
 - **Favorites** — Save dishes with ❤️ and ask "Show my favorite dishes" anytime
 - **Follow-up Suggestions** — Context-aware question suggestions after each response
@@ -19,6 +23,7 @@ A friendly AI food assistant that helps customers explore menus, track orders, a
 - **Message Actions** — Like / dislike / share any AI reply
 - **Keyboard Shortcuts** — `Ctrl+K` to focus chat, `Ctrl+Shift+K` to focus search
 - **Auto-Summary** — Long conversations are summarized to keep responses fast
+- **Mobile-First** — Responsive layouts with safe-area support, soft-keyboard aware chat bar, and touch-friendly targets
 
 ---
 
@@ -26,8 +31,8 @@ A friendly AI food assistant that helps customers explore menus, track orders, a
 
 ### 1. Get the code
 ```bash
-git clone https://github.com/YOUR_USERNAME/zingybyte-ai.git
-cd zingybyte-ai
+git clone https://github.com/Fasee9831/ZINGYBYTE-Food-ai-assistant.git
+cd ZINGYBYTE-Food-ai-assistant
 ```
 
 ### 2. Install requirements
@@ -79,7 +84,7 @@ GROQ_API_KEY = "gsk_your_api_key_here"
 | `knowledge.py` | Menu catalog, FAQs, and mock order data |
 | `prompt.py` | AI personality instructions and suggested questions |
 | `styles.py` | All the CSS for the dark premium look |
-| `ui.py` | Renders sidebar, top bar, menu drawer, hero screen, and chat bubbles |
+| `ui.py` | Renders sidebar, top bar, menu & quick-action drawers, hero screen, About dialog, and chat bubbles |
 | `utils.py` | Session state and conversation management |
 | `favorites.py` | Favorite-dish storage, lookups, and formatting |
 
@@ -96,6 +101,10 @@ Click the suggestion cards on the home screen or type:
 > What is the delivery fee and how do I get free delivery?
 
 > Where is my order ZB-9874?
+
+> Add Chicken Biryani to my favorites
+
+> Show my favorite dishes
 
 ---
 

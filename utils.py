@@ -120,6 +120,8 @@ def init_app_state() -> None:
         st.session_state.total_tokens_used = 0
     if "session_start_time" not in st.session_state:
         st.session_state.session_start_time = datetime.now()
+    if "selected_model" not in st.session_state:
+        st.session_state.selected_model = "auto"
 
 
 def save_current_conversation() -> str:
@@ -233,10 +235,11 @@ def get_chat_statistics() -> Dict:
 def compile_message_history() -> List:
     history = []
     if st.session_state.get("chat_summary"):
-        history.append(SystemMessage(content=f"[SUMMARY OF PRIOR CONVERSATION]: {st.session_state.chat_summary}"))
+        history.append(SystemMessage(content=f"[SUMMARY OF PRIOR CONVERSATION]: {st.session_state.chat_summary[:200]}"))
     active_window = st.session_state.messages[-4:]
     for msg in active_window:
-        safe = _redact_image_content(msg["content"])
+        raw_text = msg["content"][:200]
+        safe = _redact_image_content(raw_text)
         if msg["role"] == "user":
             history.append(HumanMessage(content=safe))
         elif msg["role"] == "assistant":

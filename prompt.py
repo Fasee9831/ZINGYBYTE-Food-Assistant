@@ -51,6 +51,14 @@ SUGGESTED_PROMPTS = [
     {
         "label": "📦 Where is my food? (ZB-9874)",
         "query": "Hey! Can you check where my order ZB-9874 is right now and what the ETA looks like?"
+    },
+    {
+        "label": "🎟️ Any active coupons?",
+        "query": "Do you have any coupon codes or offers I can use right now?"
+    },
+    {
+        "label": "📍 Where are your branches?",
+        "query": "Tell me about your branches — locations, timings, and dine-in options."
     }
 ]
 
